@@ -1,0 +1,21 @@
+# Nunca enviar node_modules al contexto de build: cada Dockerfile
+# instala las dependencias correctas para Linux/Alpine con npm ci.
+# Si esto no está, COPY src/<servicio> . sobreescribe los módulos
+# nativos (ej. bcrypt) con los compilados en tu máquina local (macOS).
+node_modules
+**/node_modules
+
+.git
+.env
+.env.local
+.env.*.local
+
+npm-debug.log*
+*.log
+
+.DS_Store
+coverage/
+dist/
+build/
+**/dist/
+**/build/
