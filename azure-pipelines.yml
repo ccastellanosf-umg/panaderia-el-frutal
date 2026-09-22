@@ -96,10 +96,11 @@ stages:
           - script: |
               npm ci
               npx prisma generate
+              npm --prefix ../.. ci
             workingDirectory: 'src/$(serviceName)'
             displayName: 'Preparar $(serviceName)'
 
-          - script: npx jest ../../tests/$(serviceName).test.js --ci
+          - script: npx jest $(serviceName).test.js --roots ../../tests --ci --forceExit
             workingDirectory: 'src/$(serviceName)'
             displayName: 'Ejecutar pruebas de $(serviceName)'
             env:

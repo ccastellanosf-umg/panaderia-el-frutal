@@ -1,0 +1,28 @@
+{
+  "name": "panaderia-el-frutal",
+  "version": "1.0.0",
+  "description": "Proyecto de Seminario de Trabajo de Graduación — Universidad Mariano Gálvez de Guatemala Facultad de Ingeniería en Sistemas de Información — Grupo 3",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ccastellanosf-umg/panaderia-el-frutal.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ccastellanosf-umg/panaderia-el-frutal/issues"
+  },
+  "homepage": "https://github.com/ccastellanosf-umg/panaderia-el-frutal#readme",
+  "devDependencies": {
+    "supertest": "^7.3.0"
+  }
+}
