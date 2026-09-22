@@ -25,7 +25,7 @@ pr:
 variables:
   azureSubscription: 'Conexion-ServicePrincipal-ElFrutal'
   resourceGroupName: 'rg-elfrutal-transformacion-digital'
-  acrName: 'acrelfrutal'
+  acrName: 'acrelfrutalcc'
   staticWebAppName: 'swa-elfrutal-frontend'
   frontendDirectory: 'src/frontend'
 
