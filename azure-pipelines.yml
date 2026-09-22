@@ -25,8 +25,8 @@ pr:
 variables:
   azureSubscription: 'Conexion-ServicePrincipal-ElFrutal'
   resourceGroupName: 'rg-elfrutal-transformacion-digital'
-  acrName: 'acrelfrutal'
-  staticWebAppName: 'swa-elfrutal-frontend'
+  acrName: 'acrelfrutalcc'
+  staticWebAppName: 'swa-elfrutal-frontend-cc'
   frontendDirectory: 'src/frontend'
 
 stages:
@@ -70,23 +70,6 @@ stages:
             condition: eq(variables['usaPrisma'], 'true')
             displayName: 'Generar cliente Prisma de $(serviceName)'
 
-      - job: BuildFrontend
-        displayName: 'Build frontend (React)'
-        pool:
-          vmImage: 'ubuntu-latest'
-        steps:
-          - task: NodeTool@0
-            inputs:
-              versionSpec: '20.x'
-          - script: npm ci
-            workingDirectory: '$(frontendDirectory)'
-            displayName: 'Instalar dependencias'
-          - script: npm run build
-            workingDirectory: '$(frontendDirectory)'
-            displayName: 'Generar build de producción'
-          - publish: '$(frontendDirectory)/build'
-            artifact: frontend-build
-            displayName: 'Publicar artefacto del frontend'
 
   # ------------------------------------------------------------
   # ETAPA 2: TEST — pruebas unitarias de los microservicios
@@ -138,10 +121,10 @@ stages:
           matrix:
             auth:
               serviceName: 'auth'
-              appServiceName: 'app-elfrutal-auth'
+              appServiceName: 'app-elfrutal-auth-cc'
             catalogo:
               serviceName: 'catalogo'
-              appServiceName: 'app-elfrutal-catalogo'
+              appServiceName: 'app-elfrutal-catalogo-cc'
         steps:
           - task: Docker@2
             displayName: 'Build y push de la imagen de $(serviceName) a ACR'
@@ -186,15 +169,3 @@ stages:
                 $(Build.BuildId)
                 latest
 
-      - job: DeployFrontend
-        displayName: 'Desplegar frontend en Azure Static Web Apps'
-        pool:
-          vmImage: 'ubuntu-latest'
-        steps:
-          - download: current
-            artifact: frontend-build
-          - task: AzureStaticWebApp@0
-            inputs:
-              app_location: '$(Pipeline.Workspace)/frontend-build'
-              output_location: ''
-              azure_static_web_apps_api_token: '$(AZURE_STATIC_WEB_APPS_API_TOKEN)'
