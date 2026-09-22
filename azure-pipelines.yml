@@ -135,6 +135,7 @@ stages:
               command: 'buildAndPush'
               Dockerfile: 'docker/$(serviceName)/Dockerfile'
               buildContext: '.'
+              arguments: '--platform linux/amd64'
               tags: |
                 $(Build.BuildId)
                 latest
@@ -166,6 +167,7 @@ stages:
               command: 'buildAndPush'
               Dockerfile: 'docker/$(serviceName)/Dockerfile'
               buildContext: '.'
+              arguments: '--platform linux/amd64'
               tags: |
                 $(Build.BuildId)
                 latest
