@@ -129,6 +129,8 @@ stages:
         steps:
           - task: Docker@2
             displayName: 'Build y push de la imagen de $(serviceName) a ACR'
+            env:
+              DOCKER_BUILDKIT: '1'
             inputs:
               containerRegistry: '$(acrName)'
               repository: 'elfrutal-$(serviceName)'
@@ -161,6 +163,8 @@ stages:
         steps:
           - task: Docker@2
             displayName: 'Build y push de la imagen de $(serviceName) a ACR (sin desplegar)'
+            env:
+              DOCKER_BUILDKIT: '1'
             inputs:
               containerRegistry: '$(acrName)'
               repository: 'elfrutal-$(serviceName)'
