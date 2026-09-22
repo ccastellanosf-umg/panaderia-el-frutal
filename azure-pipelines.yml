@@ -26,7 +26,7 @@ variables:
   azureSubscription: 'Conexion-ServicePrincipal-ElFrutal'
   resourceGroupName: 'rg-elfrutal-transformacion-digital'
   acrName: 'acrelfrutalcc'
-  staticWebAppName: 'swa-elfrutal-frontend'
+  staticWebAppName: 'swa-elfrutal-frontend-cc'
   frontendDirectory: 'src/frontend'
 
 stages:
@@ -138,10 +138,10 @@ stages:
           matrix:
             auth:
               serviceName: 'auth'
-              appServiceName: 'app-elfrutal-auth'
+              appServiceName: 'app-elfrutal-auth-cc'
             catalogo:
               serviceName: 'catalogo'
-              appServiceName: 'app-elfrutal-catalogo'
+              appServiceName: 'app-elfrutal-catalogo-cc'
         steps:
           - task: Docker@2
             displayName: 'Build y push de la imagen de $(serviceName) a ACR'
