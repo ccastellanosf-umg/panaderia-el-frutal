@@ -1,0 +1,23 @@
+// src/catalogo/prisma/schema.prisma
+// El microservicio de catálogo gestiona la tabla productos del
+// modelo relacional ya definido en el proyecto.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Producto {
+  idProducto     Int     @id @default(autoincrement()) @map("idProducto")
+  nombre         String  @db.VarChar(100)
+  descripcion    String?
+  precio         Decimal @db.Decimal(8, 2)
+  disponibilidad Boolean @default(true)
+  fotoUrl        String? @map("fotoUrl") @db.VarChar(255)
+
+  @@map("productos")
+}

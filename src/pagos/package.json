@@ -1,0 +1,8 @@
+{
+  "name": "elfrutal-pagos-service",
+  "version": "0.1.0",
+  "description": "Microservicio de pagos y suscripciones — scaffolding para el Sprint 3",
+  "main": "index.js",
+  "scripts": { "start": "node index.js" },
+  "dependencies": { "express": "^4.19.2" }
+}

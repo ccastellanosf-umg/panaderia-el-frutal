@@ -1,0 +1,200 @@
+# ============================================================
+# azure-pipelines.yml
+# Transformación Digital de Panadería El Frutal — Grupo 3
+# ============================================================
+# Pipeline básico requerido para esta entrega: Build + Test sobre
+# los cuatro microservicios (auth, catalogo, pedidos, pagos).
+# La etapa Deploy se agrega como avance adicional sobre el mínimo
+# solicitado, y por ahora solo despliega los dos microservicios ya
+# implementados en el Sprint 1 (auth y catalogo); pedidos y pagos
+# son scaffolding y se desplegarán en los Sprints 2 y 3.
+#
+# Estrategia de ramas: GitHub Flow. Los Pull Requests disparan
+# únicamente Build y Test; Deploy solo se ejecuta al fusionar a main.
+
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+variables:
+  azureSubscription: 'Conexion-ServicePrincipal-ElFrutal'
+  resourceGroupName: 'rg-elfrutal-transformacion-digital'
+  acrName: 'acrelfrutal'
+  staticWebAppName: 'swa-elfrutal-frontend'
+  frontendDirectory: 'src/frontend'
+
+stages:
+
+  # ------------------------------------------------------------
+  # ETAPA 1: BUILD — los cuatro microservicios + frontend
+  # ------------------------------------------------------------
+  - stage: Build
+    displayName: 'Build de los microservicios y el frontend'
+    jobs:
+      - job: BuildMicroservicios
+        displayName: 'Build de microservicios (matriz)'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          matrix:
+            auth:
+              serviceName: 'auth'
+              usaPrisma: 'true'
+            catalogo:
+              serviceName: 'catalogo'
+              usaPrisma: 'true'
+            pedidos:
+              serviceName: 'pedidos'
+              usaPrisma: 'false'
+            pagos:
+              serviceName: 'pagos'
+              usaPrisma: 'false'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Instalar Node.js 20'
+
+          - script: npm ci
+            workingDirectory: 'src/$(serviceName)'
+            displayName: 'Instalar dependencias de $(serviceName)'
+
+          - script: npx prisma generate
+            workingDirectory: 'src/$(serviceName)'
+            condition: eq(variables['usaPrisma'], 'true')
+            displayName: 'Generar cliente Prisma de $(serviceName)'
+
+      - job: BuildFrontend
+        displayName: 'Build frontend (React)'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+          - script: npm ci
+            workingDirectory: '$(frontendDirectory)'
+            displayName: 'Instalar dependencias'
+          - script: npm run build
+            workingDirectory: '$(frontendDirectory)'
+            displayName: 'Generar build de producción'
+          - publish: '$(frontendDirectory)/build'
+            artifact: frontend-build
+            displayName: 'Publicar artefacto del frontend'
+
+  # ------------------------------------------------------------
+  # ETAPA 2: TEST — pruebas unitarias de los microservicios
+  # ------------------------------------------------------------
+  - stage: Test
+    displayName: 'Pruebas unitarias'
+    dependsOn: Build
+    jobs:
+      - job: UnitTests
+        displayName: 'Pruebas unitarias (Jest) por microservicio'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          matrix:
+            auth:
+              serviceName: 'auth'
+            catalogo:
+              serviceName: 'catalogo'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+
+          - script: |
+              npm ci
+              npx prisma generate
+            workingDirectory: 'src/$(serviceName)'
+            displayName: 'Preparar $(serviceName)'
+
+          - script: npx jest ../../tests/$(serviceName).test.js --ci
+            workingDirectory: 'src/$(serviceName)'
+            displayName: 'Ejecutar pruebas de $(serviceName)'
+            env:
+              JWT_SECRET: 'clave-de-pruebas-no-productiva'
+
+  # ------------------------------------------------------------
+  # ETAPA 3: DEPLOY (solo main; solo servicios del Sprint 1)
+  # ------------------------------------------------------------
+  - stage: Deploy
+    displayName: 'Despliegue a Azure (auth y catalogo)'
+    dependsOn: Test
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: DeployMicroservicios
+        displayName: 'Build de imágenes y despliegue en Azure App Service'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          matrix:
+            auth:
+              serviceName: 'auth'
+              appServiceName: 'app-elfrutal-auth'
+            catalogo:
+              serviceName: 'catalogo'
+              appServiceName: 'app-elfrutal-catalogo'
+        steps:
+          - task: Docker@2
+            displayName: 'Build y push de la imagen de $(serviceName) a ACR'
+            inputs:
+              containerRegistry: '$(acrName)'
+              repository: 'elfrutal-$(serviceName)'
+              command: 'buildAndPush'
+              Dockerfile: 'docker/$(serviceName)/Dockerfile'
+              buildContext: '.'
+              tags: |
+                $(Build.BuildId)
+                latest
+
+          - task: AzureWebAppContainer@1
+            displayName: 'Desplegar $(serviceName) en Azure App Service'
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appName: '$(appServiceName)'
+              resourceGroupName: '$(resourceGroupName)'
+              imageName: '$(acrName).azurecr.io/elfrutal-$(serviceName):$(Build.BuildId)'
+
+      - job: PushScaffolding
+        displayName: 'Publicar imágenes de scaffolding (pedidos, pagos) sin desplegar'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          matrix:
+            pedidos:
+              serviceName: 'pedidos'
+            pagos:
+              serviceName: 'pagos'
+        steps:
+          - task: Docker@2
+            displayName: 'Build y push de la imagen de $(serviceName) a ACR (sin desplegar)'
+            inputs:
+              containerRegistry: '$(acrName)'
+              repository: 'elfrutal-$(serviceName)'
+              command: 'buildAndPush'
+              Dockerfile: 'docker/$(serviceName)/Dockerfile'
+              buildContext: '.'
+              tags: |
+                $(Build.BuildId)
+                latest
+
+      - job: DeployFrontend
+        displayName: 'Desplegar frontend en Azure Static Web Apps'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - download: current
+            artifact: frontend-build
+          - task: AzureStaticWebApp@0
+            inputs:
+              app_location: '$(Pipeline.Workspace)/frontend-build'
+              output_location: ''
+              azure_static_web_apps_api_token: '$(AZURE_STATIC_WEB_APPS_API_TOKEN)'

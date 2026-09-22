@@ -1,0 +1,111 @@
+# ============================================================
+# docker-compose.yml
+# Transformación Digital de Panadería El Frutal — Grupo 3
+# ============================================================
+# Orquesta los cuatro microservicios (auth, catalogo, pedidos,
+# pagos), la base de datos PostgreSQL y Redis (usado por el
+# microservicio de auth para invalidar tokens / sesiones y como
+# caché de lecturas frecuentes del catálogo).
+#
+# auth y catalogo están completamente implementados (Sprint 1).
+# pedidos y pagos son scaffolding: exponen /health y se completan
+# en los Sprints 2 y 3 respectivamente, conforme al Gantt del
+# proyecto.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: elfrutal_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-panaderia_el_frutal}
+      POSTGRES_USER: ${DB_USER:-elfrutal_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./panaderia_el_frutal_script.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-elfrutal_admin}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: elfrutal_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth:
+    build:
+      context: .
+      dockerfile: docker/auth/Dockerfile
+    container_name: elfrutal_auth
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-elfrutal_admin}:${DB_PASSWORD}@db:5432/${DB_NAME:-panaderia_el_frutal}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 3001
+    ports:
+      - "3001:3001"
+
+  catalogo:
+    build:
+      context: .
+      dockerfile: docker/catalogo/Dockerfile
+    container_name: elfrutal_catalogo
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-elfrutal_admin}:${DB_PASSWORD}@db:5432/${DB_NAME:-panaderia_el_frutal}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 3002
+    ports:
+      - "3002:3002"
+
+  pedidos:
+    build:
+      context: .
+      dockerfile: docker/pedidos/Dockerfile
+    container_name: elfrutal_pedidos
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-elfrutal_admin}:${DB_PASSWORD}@db:5432/${DB_NAME:-panaderia_el_frutal}
+      PORT: 3003
+    ports:
+      - "3003:3003"
+
+  pagos:
+    build:
+      context: .
+      dockerfile: docker/pagos/Dockerfile
+    container_name: elfrutal_pagos
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-elfrutal_admin}:${DB_PASSWORD}@db:5432/${DB_NAME:-panaderia_el_frutal}
+      PORT: 3004
+    ports:
+      - "3004:3004"
+
+volumes:
+  db_data:
+    driver: local

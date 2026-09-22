@@ -1,0 +1,35 @@
+// src/auth/prisma/schema.prisma
+// El microservicio de autenticación gestiona las tablas usuarios y
+// clientes del modelo relacional ya definido en el proyecto.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  idUsuario      Int      @id @default(autoincrement()) @map("idUsuario")
+  nombre         String   @db.VarChar(100)
+  correo         String   @unique @db.VarChar(150)
+  contrasenaHash String   @map("contrasenaHash") @db.VarChar(255)
+  rol            String   @db.VarChar(20)
+  fechaRegistro  DateTime @default(now()) @map("fechaRegistro") @db.Date
+  cliente        Cliente?
+
+  @@map("usuarios")
+}
+
+model Cliente {
+  idCliente   Int     @id @default(autoincrement()) @map("idCliente")
+  idUsuario   Int     @unique @map("idUsuario")
+  telefono    String? @db.VarChar(15)
+  direccion   String? @db.VarChar(200)
+  tipoCliente String  @default("ocasional") @map("tipoCliente") @db.VarChar(20)
+  usuario     Usuario @relation(fields: [idUsuario], references: [idUsuario])
+
+  @@map("clientes")
+}

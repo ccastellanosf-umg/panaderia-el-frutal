@@ -1,0 +1,8 @@
+{
+  "name": "elfrutal-pedidos-service",
+  "version": "0.1.0",
+  "description": "Microservicio de gestión de pedidos — scaffolding para el Sprint 2",
+  "main": "index.js",
+  "scripts": { "start": "node index.js" },
+  "dependencies": { "express": "^4.19.2" }
+}

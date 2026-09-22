@@ -1,0 +1,34 @@
+# Dependencias (una carpeta node_modules por microservicio)
+node_modules/
+**/node_modules/
+
+# Variables de entorno (nunca se sube al repositorio)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Builds
+dist/
+build/
+**/dist/
+**/build/
+
+# Prisma
+**/prisma/migrations/dev.db
+
+# Logs
+npm-debug.log*
+*.log
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Cobertura de pruebas
+coverage/
