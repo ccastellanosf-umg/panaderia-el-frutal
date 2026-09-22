@@ -40,7 +40,7 @@ stages:
       - job: BuildMicroservicios
         displayName: 'Build de microservicios (matriz)'
         pool:
-          vmImage: 'ubuntu-latest'
+          name: 'Default'
         strategy:
           matrix:
             auth:
@@ -81,7 +81,7 @@ stages:
       - job: UnitTests
         displayName: 'Pruebas unitarias (Jest) por microservicio'
         pool:
-          vmImage: 'ubuntu-latest'
+          name: 'Default'
         strategy:
           matrix:
             auth:
@@ -116,7 +116,7 @@ stages:
       - job: DeployMicroservicios
         displayName: 'Build de imágenes y despliegue en Azure App Service'
         pool:
-          vmImage: 'ubuntu-latest'
+          name: 'Default'
         strategy:
           matrix:
             auth:
@@ -149,7 +149,7 @@ stages:
       - job: PushScaffolding
         displayName: 'Publicar imágenes de scaffolding (pedidos, pagos) sin desplegar'
         pool:
-          vmImage: 'ubuntu-latest'
+          name: 'Default'
         strategy:
           matrix:
             pedidos:
