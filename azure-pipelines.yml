@@ -127,20 +127,17 @@ stages:
               serviceName: 'catalogo'
               appServiceName: 'app-elfrutal-catalogo-cc'
         steps:
-          - task: Docker@2
-            displayName: 'Build y push de la imagen de $(serviceName) a ACR'
-            env:
-              DOCKER_BUILDKIT: '1'
+          - task: AzureCLI@2
+            displayName: 'Build y push de la imagen de $(serviceName) a ACR (linux/amd64)'
             inputs:
-              containerRegistry: '$(acrName)'
-              repository: 'elfrutal-$(serviceName)'
-              command: 'buildAndPush'
-              Dockerfile: 'docker/$(serviceName)/Dockerfile'
-              buildContext: '.'
-              arguments: '--platform linux/amd64'
-              tags: |
-                $(Build.BuildId)
-                latest
+              azureSubscription: '$(azureSubscription)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                set -e
+                export DOCKER_BUILDKIT=1
+                az acr login --name $(acrName)
+                docker buildx build --platform linux/amd64 -f docker/$(serviceName)/Dockerfile -t $(acrName).azurecr.io/elfrutal-$(serviceName):$(Build.BuildId) -t $(acrName).azurecr.io/elfrutal-$(serviceName):latest --push .
 
           - task: AzureWebAppContainer@1
             displayName: 'Desplegar $(serviceName) en Azure App Service'
@@ -161,18 +158,15 @@ stages:
             pagos:
               serviceName: 'pagos'
         steps:
-          - task: Docker@2
-            displayName: 'Build y push de la imagen de $(serviceName) a ACR (sin desplegar)'
-            env:
-              DOCKER_BUILDKIT: '1'
+          - task: AzureCLI@2
+            displayName: 'Build y push de la imagen de $(serviceName) a ACR (linux/amd64, sin desplegar)'
             inputs:
-              containerRegistry: '$(acrName)'
-              repository: 'elfrutal-$(serviceName)'
-              command: 'buildAndPush'
-              Dockerfile: 'docker/$(serviceName)/Dockerfile'
-              buildContext: '.'
-              arguments: '--platform linux/amd64'
-              tags: |
-                $(Build.BuildId)
-                latest
+              azureSubscription: '$(azureSubscription)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                set -e
+                export DOCKER_BUILDKIT=1
+                az acr login --name $(acrName)
+                docker buildx build --platform linux/amd64 -f docker/$(serviceName)/Dockerfile -t $(acrName).azurecr.io/elfrutal-$(serviceName):$(Build.BuildId) -t $(acrName).azurecr.io/elfrutal-$(serviceName):latest --push .
 
