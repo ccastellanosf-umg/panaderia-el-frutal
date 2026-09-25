@@ -1,0 +1,18 @@
+DEF-08 — POST /productos acepta precio:null y crea el producto con precio 0 en lugar de rechazarlo
+Fecha de prueba: 2026-09-25
+
+Comando:
+curl -s -X POST http://localhost:3002/productos -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' -d '{"nombre":"QA precio null","precio":null}'
+Respuesta: 201 Created
+{"idProducto":31,"nombre":"QA precio null","descripcion":null,"precio":0,"disponibilidad":true,"fotoUrl":null}
+
+Verificacion en base de datos:
+docker exec elfrutal_db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT \"idProducto\",\"nombre\",\"precio\" FROM productos WHERE \"idProducto\"=31;"'
+ idProducto |     nombre      | precio
+         31 | QA precio null  |   0.00
+
+Causa raiz: src/catalogo/routes/catalogo.routes.js:66-69
+  const precioNum = Number(precio);
+  if (precio === undefined || Number.isNaN(precioNum) || precioNum < 0) { ... }
+La comparacion solo excluye `undefined`, no `null`. `Number(null)` evalua a `0`, que no es NaN y es >= 0, por lo que la validacion pasa y el producto se crea con precio 0 en lugar de responder 400 "El precio debe ser un número mayor o igual a 0." (mismo comportamiento defectuoso en PUT /productos/:id, linea 85-88).
+Impacto: un cliente del API (front-end con un bug, o un payload manipulado) que envie `"precio": null` termina creando/editando un producto gratuito (Q0.00) sin ninguna advertencia, en vez de recibir el error de validacion esperado para un precio ausente/invalido — riesgo de inconsistencia de datos y de perdida economica si el front no filtra ese caso.

@@ -1,9 +1,11 @@
 # Suite E2E — Fase 1 (`casos-prueba.e2e.test.js`)
 
-Ejecuta un test por cada caso de prueba (CP-01 a CP-30) del documento
+Ejecuta un test por cada caso de prueba (CP-01 a CP-40) del documento
 de QA, contra los cuatro microservicios **en ejecución** (por defecto
 `docker compose up`, o Azure más adelante vía las variables de
-entorno).
+entorno). CP-31..CP-40 verifican el comportamiento CORRECTO esperado
+para cada uno de los defectos DEF-01..DEF-10 documentados en
+`docs/defectos/defectos.md`.
 
 ```bash
 npm run test:e2e
@@ -57,6 +59,21 @@ el producto `idProducto=1`).
 | CP-28 | `PATCH /suscripciones/:id/cancelar` (12h → 409)             | pagos     |
 | CP-29 | `GET /reportes/ventas`                                    | pedidos   |
 | CP-30 | `GET /reportes/sugerencia-produccion`                     | pedidos   |
+
+## CP-31..CP-40 — defectos DEF-01..DEF-10
+
+| CP    | RF/RNF                        | Técnica de prueba                | Datos de prueba                                                        | Resultado esperado                                                    | DEF asociado |
+|-------|--------------------------------|-----------------------------------|--------------------------------------------------------------------------|--------------------------------------------------------------------------|--------------|
+| CP-31 | RF-01                          | Partición de equivalencia (valores no numéricos/no finitos) | `POST /productos` con `precio:"Infinity"`                              | 400 y catalogo permanece operativo (`GET /health` = 200 tras el sondeo) | DEF-01 (Cerrado) |
+| CP-32 | RF-17                          | Partición de equivalencia (formato de fecha inválido)       | `GET /reportes/ventas?desde=no-es-fecha&hasta=2026-12-31`               | 400 y pedidos permanece operativo (`GET /health` = 200 tras el sondeo) | DEF-02 (Cerrado) |
+| CP-33 | RF-21, RNF-02                  | Transición de estados (sesión activa -> cerrada)             | login admin, `POST /auth/logout`, reutilizar el mismo token en catalogo/pedidos/pagos | 401 en los tres servicios (igual que en auth)                          | DEF-03 (Abierto) |
+| CP-34 | RF-16                          | Transición de estados (suscripción cancelada)                 | `POST /suscripciones/:id/cobrar` sobre una suscripción con `estado='cancelada'` | 409 y no se inserta un nuevo registro en `pagos`                       | DEF-04 (Cerrado) |
+| CP-35 | RF-10, RF-11                   | Análisis de valores límite (stock insuficiente para 1 unidad) | insumo con `cantidadDisponible=0.5`, receta requiere 1; `POST /pedidos` de 1 unidad | 409 y `cantidadDisponible` permanece en 0.5 (no se descuenta)          | DEF-05 (Abierto) |
+| CP-36 | unicidad de correo (RF-20/21)  | Partición de equivalencia (formato/capitalización de correo)  | registrar un correo, luego registrar la misma dirección con distinta capitalización | 400 `"Correo en uso"` en el segundo registro                           | DEF-06 (Cerrado) |
+| CP-37 | RF-01                          | Análisis de valores límite (longitud de `nombre`, límite 100) | `PUT /productos/:id` con `nombre` de 101 caracteres                    | 400 de validación (nunca 404/500)                                      | DEF-07 (Abierto) |
+| CP-38 | RF-01                          | Partición de equivalencia (precio ausente/null)                | `POST /productos` con `precio:null`                                    | 400                                                                       | DEF-08 (Cerrado) |
+| CP-39 | consistencia del contrato de API | Tabla de decisión (Content-Type × validez del cuerpo)         | `POST /pedidos` con cuerpo `'{"items":['` (JSON incompleto)             | 400 con cuerpo JSON `{"error": "..."}` (nunca HTML)                    | DEF-09 (Cerrado) |
+| CP-40 | RF-04                          | Análisis de valores límite (fechaEntrega pasada vs. hoy)       | `POST /pedidos` con `fechaEntrega:"2020-01-01"`                         | 400                                                                       | DEF-10 (Abierto) |
 
 El resultado también se exporta a `test-results/e2e-junit.xml`
 (formato JUnit) para subirlo a Azure Test Plans.

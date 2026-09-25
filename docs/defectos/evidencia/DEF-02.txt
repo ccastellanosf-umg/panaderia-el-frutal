@@ -1,0 +1,32 @@
+DEF-02 — GET /reportes/ventas con fecha invalida tumba el microservicio pedidos completo (crash / denegacion de servicio)
+Fecha de prueba: 2026-09-25
+
+Precondicion: sesion admin activa. Servicio pedidos saludable antes de la prueba.
+
+Comando:
+curl -s "http://localhost:3003/reportes/ventas?desde=no-es-fecha&hasta=2026-12-31" -H "Authorization: Bearer $ADMIN"
+
+Respuesta observada: conexion cerrada sin respuesta (curl exit code 52, "Empty reply from server"), HTTP status 000.
+
+Evidencia del contenedor (docker logs elfrutal_pedidos --tail 60), dos crashes consecutivos (una por cada consulta en Promise.all):
+  error: invalid input syntax for type date: "no-es-fecha"
+      at async ventasPorProducto (/app/routes/reportes.routes.js:20:20)
+      at async Promise.all (index 0)
+      at async /app/routes/reportes.routes.js:54:35
+  code: '22007' (DateTimeParseError)
+  Node.js v20.20.2
+  Microservicio de pedidos escuchando en el puerto 3003    <-- proceso murio y se reinicio
+
+  error: invalid input syntax for type date: "no-es-fecha"
+      at async ventasPorCanal (/app/routes/reportes.routes.js:37:20)
+      at async Promise.all (index 1)
+  Node.js v20.20.2
+  Microservicio de pedidos escuchando en el puerto 3003    <-- segundo reinicio
+
+Estado tras el crash:
+docker ps --format '{{.Names}}: {{.Status}}'
+elfrutal_pedidos: Up 13 seconds (healthy)  <-- confirma el reinicio automatico por Docker
+
+Causa raiz: src/pedidos/routes/reportes.routes.js:11-17 (rangoFechas) no valida el formato de "desde"/"hasta" recibidos por querystring; el handler GET /reportes/ventas (lineas 52-59) pasa esos valores directo a una consulta SQL parametrizada contra una columna DATE sin try/catch alrededor de la ruta. Postgres rechaza el literal no parseable (22007) y, al no existir manejo de errores en esa ruta, la excepcion se propaga como promesa rechazada no controlada y Node.js mata el proceso completo.
+Impacto: el microservicio de pedidos aloja tambien /pedidos, /pedidos/:id/estado, /pedidos/:id/cancelar e /inventario/*; una sola peticion de reportes con un parametro de fecha mal formado (accesible solo a administrador, pero trivial de disparar por error de UI o por un tercero con credenciales admin filtradas) tumba TODO el servicio de pedidos e inventario para todos los roles hasta que Docker lo reinicie.
+Nota: el mismo patron (rangoFechas() sin validar + ausencia de try/catch) se repite en GET /reportes/ventas/excel, GET /reportes/inventario y en el resto de rutas de reportes.routes.js; no se volvieron a probar individualmente para evitar caidas de servicio innecesarias, pero comparten la misma causa raiz y muy probablemente el mismo riesgo (ver Observaciones).

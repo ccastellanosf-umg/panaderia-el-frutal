@@ -1,0 +1,23 @@
+DEF-06 — El registro permite crear dos cuentas distintas con el mismo correo en diferente capitalizacion (bypass de unicidad de correo)
+Fecha de prueba: 2026-09-25
+
+Comando 1: registrar con correo en minusculas
+curl -s -X POST http://localhost:3001/auth/registro -H 'Content-Type: application/json' \
+  -d '{"nombre":"QA Tester Two","correo":"qa.tester2@elfrutal-test.com","contrasena":"Qatest1234","telefono":"55550002"}'
+Respuesta: 201 {"mensaje":"Registro exitoso","idUsuario":66}
+
+Comando 2: registrar el MISMO correo pero con mayusculas distintas
+curl -s -X POST http://localhost:3001/auth/registro -H 'Content-Type: application/json' \
+  -d '{"nombre":"Dup Case","correo":"QA.Tester2@elfrutal-test.com","contrasena":"Qatest1234"}'
+Respuesta: 201 {"mensaje":"Registro exitoso","idUsuario":67}
+=> Se creo una SEGUNDA cuenta (idUsuario=67, idCliente=64) con el "mismo" correo (solo difiere en capitalizacion), cuando el sistema debio responder 400 "Correo en uso" como ocurre con el correo identico.
+
+Comando 3: se confirma que ambas cuentas son independientes y ambas inician sesion
+curl -s -X POST http://localhost:3001/auth/login -H 'Content-Type: application/json' -d '{"correo":"qa.tester2@elfrutal-test.com","contrasena":"Qatest1234"}'
+Respuesta: 200, token con idUsuario=66, idCliente=63
+curl -s -X POST http://localhost:3001/auth/login -H 'Content-Type: application/json' -d '{"correo":"QA.Tester2@elfrutal-test.com","contrasena":"Qatest1234"}'
+Respuesta: 200, token con idUsuario=67, idCliente=64
+=> Dos usuarios/clientes completamente distintos para lo que el negocio consideraria "el mismo correo".
+
+Causa raiz: src/auth/routes/auth.routes.js:32 usa `prisma.usuario.findUnique({ where: { correo } })` con comparacion EXACTA (case-sensitive) contra la columna "correo"; no normaliza a minusculas antes de buscar ni de insertar (linea 38-40). La base de datos tampoco tiene una restriccion UNIQUE case-insensitive (ni un indice funcional LOWER(correo)) en db/01_schema.sql.
+Impacto: un usuario puede registrar multiples cuentas usando variaciones de mayusculas/minusculas del mismo correo, evadiendo el control de unicidad, lo que puede usarse para abusar promociones, crear identidades duplicadas de cliente, o confundir al usuario legitimo sobre cual cuenta usar.

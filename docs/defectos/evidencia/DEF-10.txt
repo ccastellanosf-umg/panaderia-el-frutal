@@ -1,0 +1,12 @@
+DEF-10 — POST /pedidos acepta fechaEntrega en el pasado sin ninguna validacion
+Fecha de prueba: 2026-09-25 (fecha del servidor)
+
+Comando:
+curl -s -X POST http://localhost:3003/pedidos -H "Authorization: Bearer $CLIENTE" -H 'Content-Type: application/json' \
+  -d '{"items":[{"idProducto":1,"cantidad":1}],"fechaEntrega":"2020-01-01"}'
+Respuesta: 201 Created
+{"idPedido":93,"idCliente":1, ..., "estado":"recibido","fechaEntrega":"2020-01-01T00:00:00.000Z", ...}
+=> Se registro un pedido con fecha de entrega en el pasado (2020, mientras el reloj del servidor esta en 2026) sin ningun error ni advertencia.
+
+Causa raiz: src/pedidos/routes/pedidos.routes.js:37-92 (POST /pedidos) solo valida "items"; "direccionEntrega" y "fechaEntrega" (linea 74-79) se escriben directo en un UPDATE sin ninguna validacion de formato ni de que la fecha sea igual o posterior a la fecha actual. No existe restriccion CHECK en la columna "fechaEntrega" en db/01_schema.sql.
+Impacto: se pueden registrar pedidos con fechas de entrega absurdas (en el pasado), lo que contamina reportes de produccion/entrega y puede confundir al area de ventas/produccion sobre cuando debe prepararse el pedido (RF-04).

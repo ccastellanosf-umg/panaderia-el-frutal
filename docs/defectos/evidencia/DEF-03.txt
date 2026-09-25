@@ -1,0 +1,32 @@
+DEF-03 — El logout (RF-21) no invalida la sesion en catalogo, pedidos ni pagos
+Fecha de prueba: 2026-09-25 (hora local del entorno de pruebas)
+Comando 1: login admin
+curl -s -X POST http://localhost:3001/auth/login -H 'Content-Type: application/json' -d '{"correo":"admin@elfrutal.com","contrasena":"Admin1234"}'
+Respuesta: 200, token JWT emitido (jti=b8e8418a-a85b-4a07-90c8-775438af49d6, idUsuario=1)
+
+Comando 2: confirmar sesion activa
+curl -s http://localhost:3001/auth/me -H "Authorization: Bearer $ADMIN2"
+Respuesta: 200 {"usuario":{"idUsuario":1,"rol":"administrador", ... "jti":"b8e8418a-a85b-4a07-90c8-775438af49d6", ...}}
+
+Comando 3: logout
+curl -s -X POST http://localhost:3001/auth/logout -H "Authorization: Bearer $ADMIN2"
+Respuesta: 200 {"mensaje":"Sesión cerrada correctamente."}
+
+Comando 4: reintentar en auth con el MISMO token (correcto: bloqueado)
+curl -s http://localhost:3001/auth/me -H "Authorization: Bearer $ADMIN2"
+Respuesta: 401 {"error":"Token inválido o expirado."}
+
+Comando 5 (DEFECTO): mismo token, tras logout, contra catalogo (admin-only)
+curl -s http://localhost:3002/productos/todos -H "Authorization: Bearer $ADMIN2"
+Respuesta: 200 — devuelve el listado completo de productos (incluye no disponibles), acceso admin concedido pese a logout.
+
+Comando 6 (DEFECTO): mismo token, tras logout, contra pedidos (admin/ventas-only)
+curl -s http://localhost:3003/pedidos -H "Authorization: Bearer $ADMIN2"
+Respuesta: 200 — devuelve el listado completo de pedidos de TODOS los clientes.
+
+Comando 7 (DEFECTO): mismo token, tras logout, contra pagos (admin-only)
+curl -s http://localhost:3004/pagos -H "Authorization: Bearer $ADMIN2"
+Respuesta: 200 — devuelve el listado completo de pagos procesados.
+
+Causa raiz: src/catalogo/middlewares/verificarToken.js, src/pedidos/middlewares/verificarToken.js y src/pagos/middlewares/verificarToken.js son copias locales del middleware que SOLO verifican la firma/expiracion JWT (jwt.verify) y nunca consultan la lista negra de Redis. Solo src/auth/middlewares/verificarToken.js (lineas 33-45) implementa la verificacion contra `blacklist:<jti>`. El logout (src/auth/routes/auth.routes.js:108-125) solo escribe la clave en Redis, pero ningun otro microservicio la lee.
+Impacto: un token robado o de una sesion "cerrada" por el usuario sigue siendo valido con privilegios de administrador/operador/cliente en 3 de los 4 microservicios durante toda su vigencia (hasta 8 horas), incluyendo lectura de pedidos, pagos y catalogo administrativo.

@@ -24,6 +24,28 @@ function correoUnico(prefijo) {
   return `${prefijo}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@correo.com`;
 }
 
+// CP-31/CP-32: tras enviar una petición que antes tumbaba el
+// microservicio, sondea GET /health hasta que vuelva a responder 200
+// (o se agote el timeout), para que un eventual crash + reinicio de
+// Docker no contamine los casos de prueba siguientes.
+async function waitForHealth(baseUrl, timeoutMs = 30000, intervalMs = 1000) {
+  const limite = Date.now() + timeoutMs;
+  let ultimoError = null;
+  while (Date.now() < limite) {
+    try {
+      const res = await fetch(`${baseUrl}/health`);
+      if (res.status === 200) return true;
+    } catch (err) {
+      ultimoError = err;
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+  throw new Error(
+    `El servicio ${baseUrl} no volvió a responder /health=200 tras ${timeoutMs}ms` +
+      (ultimoError ? ` (último error: ${ultimoError.message})` : "")
+  );
+}
+
 async function api(method, url, { body, token } = {}) {
   const res = await fetch(url, {
     method,
@@ -502,5 +524,189 @@ describe("Reportes", () => {
     if (body.length) {
       expect(Number.isInteger(body[0].cantidadSugerida)).toBe(true);
     }
+  });
+});
+
+// ------------------------------------------------------------
+// CP-31..CP-40 — casos adicionales que prueban el comportamiento
+// CORRECTO esperado para cada defecto DEF-01..DEF-10
+// (docs/defectos/defectos.md). DEF-01,02,04,06,08,09 quedan
+// corregidos (Cerrado) y deben pasar; DEF-03,05,07,10 quedan
+// intencionalmente abiertos y estos casos deben seguir fallando
+// hasta que se corrijan.
+// ------------------------------------------------------------
+describe("Casos adicionales — defectos DEF-01..DEF-10", () => {
+  it("CP-31 (DEF-01) precio 'Infinity' responde 400 y catalogo permanece operativo", async () => {
+    const { status, body } = await api("POST", `${CATALOGO_URL}/productos`, {
+      token: admin.token,
+      body: { nombre: "CP-31 precio infinito", precio: "Infinity" },
+    });
+    expect(status).toBe(400);
+    expect(body.error).toBeDefined();
+
+    await waitForHealth(CATALOGO_URL);
+    const salud = await api("GET", `${CATALOGO_URL}/health`);
+    expect(salud.status).toBe(200);
+  }, 40000);
+
+  it("CP-32 (DEF-02) fecha inválida en /reportes/ventas responde 400 y pedidos permanece operativo", async () => {
+    const { status, body } = await api(
+      "GET",
+      `${PEDIDOS_URL}/reportes/ventas?desde=no-es-fecha&hasta=2026-12-31`,
+      { token: admin.token }
+    );
+    expect(status).toBe(400);
+    expect(body.error).toBeDefined();
+
+    await waitForHealth(PEDIDOS_URL);
+    const salud = await api("GET", `${PEDIDOS_URL}/health`);
+    expect(salud.status).toBe(200);
+  }, 40000);
+
+  it("CP-33 (DEF-03, abierto) un token revocado por logout es rechazado con 401 en catalogo/pedidos/pagos", async () => {
+    // Se usa un login FRESCO de administrador (no la variable
+    // compartida `admin`) para no invalidar el token que usan otros
+    // casos de esta misma suite; y endpoints admin-only para poder
+    // aislar el efecto del logout del control de acceso por rol.
+    const sesion = await login("admin@elfrutal.com", "Admin1234");
+    const antes = await api("GET", `${AUTH_URL}/auth/me`, { token: sesion.token });
+    expect(antes.status).toBe(200);
+
+    const logout = await api("POST", `${AUTH_URL}/auth/logout`, { token: sesion.token });
+    expect(logout.status).toBe(200);
+
+    const [enCatalogo, enPedidos, enPagos] = await Promise.all([
+      api("GET", `${CATALOGO_URL}/productos/todos`, { token: sesion.token }),
+      api("GET", `${PEDIDOS_URL}/pedidos`, { token: sesion.token }),
+      api("GET", `${PAGOS_URL}/pagos`, { token: sesion.token }),
+    ]);
+    // DEF-03 (abierto): hoy responden 200 en vez de 401 porque solo
+    // auth consulta la lista negra de Redis (ver defectos.md).
+    expect(enCatalogo.status).toBe(401);
+    expect(enPedidos.status).toBe(401);
+    expect(enPagos.status).toBe(401);
+  });
+
+  itDb(
+    "CP-34 (DEF-04) cobrar una suscripción cancelada responde 409 y no inserta un pago nuevo",
+    async () => {
+      const cliente = await registrarCliente("Cliente CP-34");
+      const creada = await api("POST", `${PAGOS_URL}/suscripciones`, {
+        token: cliente.token,
+        body: { idPlan: 1, surtido: [{ idProducto: 1, cantidad: 1 }] },
+      });
+      const idSuscripcion = creada.body.idSuscripcion;
+
+      await pool.query(`UPDATE suscripciones SET "estado" = 'cancelada' WHERE "idSuscripcion" = $1`, [
+        idSuscripcion,
+      ]);
+      const { rows: antes } = await pool.query(
+        `SELECT COUNT(*)::int AS n FROM pagos WHERE "idSuscripcion" = $1`,
+        [idSuscripcion]
+      );
+
+      const { status } = await api(
+        "POST",
+        `${PAGOS_URL}/suscripciones/${idSuscripcion}/cobrar`,
+        { token: admin.token, body: { simularRespuesta: "aprobado" } }
+      );
+      expect(status).toBe(409);
+
+      const { rows: despues } = await pool.query(
+        `SELECT COUNT(*)::int AS n FROM pagos WHERE "idSuscripcion" = $1`,
+        [idSuscripcion]
+      );
+      expect(despues[0].n).toBe(antes[0].n);
+    }
+  );
+
+  itDb(
+    "CP-35 (DEF-05, abierto) un pedido que excede el stock del insumo es rechazado (409) y el stock no cambia",
+    async () => {
+      const cliente = await registrarCliente("Cliente CP-35");
+      await pool.query(`UPDATE insumos SET "cantidadDisponible" = 0.5 WHERE "idInsumo" = 1`);
+      await pool.query(
+        `UPDATE producto_insumo SET "cantidadRequerida" = 1 WHERE "idProducto" = 1 AND "idInsumo" = 1`
+      );
+
+      const { status } = await api("POST", `${PEDIDOS_URL}/pedidos`, {
+        token: cliente.token,
+        body: { items: [{ idProducto: 1, cantidad: 1 }] },
+      });
+
+      const { rows } = await pool.query(
+        `SELECT "cantidadDisponible" FROM insumos WHERE "idInsumo" = 1`
+      );
+      // DEF-05 (abierto): hoy el pedido se acepta (201) y el trigger
+      // recorta el faltante a 0 en vez de rechazar el pedido.
+      expect(status).toBe(409);
+      expect(Number(rows[0].cantidadDisponible)).toBeCloseTo(0.5, 2);
+    }
+  );
+
+  it("CP-36 (DEF-06) registrar un correo que difiere solo en mayúsculas de uno existente responde 400", async () => {
+    const correo = correoUnico("cp36");
+    const primero = await api("POST", `${AUTH_URL}/auth/registro`, {
+      body: { nombre: "CP-36 Original", correo, contrasena: "Pass1234" },
+    });
+    expect(primero.status).toBe(201);
+
+    // Variante de capitalización del mismo correo (p. ej. cp36-... -> Cp36-...).
+    const variante = correo.charAt(0).toUpperCase() + correo.slice(1);
+    const { status, body } = await api("POST", `${AUTH_URL}/auth/registro`, {
+      body: { nombre: "CP-36 Duplicado", correo: variante, contrasena: "Pass1234" },
+    });
+    expect(status).toBe(400);
+    expect(body.error).toBe("Correo en uso");
+  });
+
+  it("CP-37 (DEF-07, abierto) nombre de más de 100 caracteres responde 400 de validación (no 404/500)", async () => {
+    const creado = await api("POST", `${CATALOGO_URL}/productos`, {
+      token: admin.token,
+      body: { nombre: "CP-37 producto", precio: 5 },
+    });
+    const idProducto = creado.body.idProducto;
+    const nombreLargo = "A".repeat(101);
+
+    const { status } = await api("PUT", `${CATALOGO_URL}/productos/${idProducto}`, {
+      token: admin.token,
+      body: { nombre: nombreLargo, precio: 5 },
+    });
+    // DEF-07 (abierto): hoy responde 404 "Producto no encontrado" en
+    // vez de 400 de validación (ver defectos.md).
+    expect(status).toBe(400);
+  });
+
+  it("CP-38 (DEF-08) precio null responde 400", async () => {
+    const { status } = await api("POST", `${CATALOGO_URL}/productos`, {
+      token: admin.token,
+      body: { nombre: "CP-38 precio null", precio: null },
+    });
+    expect(status).toBe(400);
+  });
+
+  it("CP-39 (DEF-09) un cuerpo JSON malformado responde 400 con cuerpo JSON {error: ...}", async () => {
+    const res = await fetch(`${PEDIDOS_URL}/pedidos`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
+      body: '{"items":[',
+    });
+    expect(res.status).toBe(400);
+    expect(res.headers.get("content-type")).toMatch(/json/);
+    const body = await res.json();
+    expect(body.error).toBeDefined();
+  });
+
+  it("CP-40 (DEF-10, abierto) fechaEntrega en el pasado responde 400", async () => {
+    const cliente = await registrarCliente("Cliente CP-40");
+    const { status } = await api("POST", `${PEDIDOS_URL}/pedidos`, {
+      token: cliente.token,
+      body: { items: [{ idProducto: 1, cantidad: 1 }], fechaEntrega: "2020-01-01" },
+    });
+    // DEF-10 (abierto): hoy se acepta (201) sin validar la fecha.
+    expect(status).toBe(400);
   });
 });

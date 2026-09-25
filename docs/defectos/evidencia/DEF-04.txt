@@ -1,0 +1,23 @@
+DEF-04 — Se puede cobrar (procesar pago) una suscripcion ya CANCELADA
+Fecha de prueba: 2026-09-25
+
+Precondicion: suscripcion semilla idSuscripcion=4 (idCliente=13) en estado 'cancelada'.
+Verificacion previa:
+docker exec elfrutal_db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT \"idSuscripcion\",\"idCliente\",\"estado\",\"fechaCobro\" FROM suscripciones WHERE \"idSuscripcion\"=4;"'
+=> idSuscripcion=4 | idCliente=13 | estado=cancelada | fechaCobro=2026-09-28 05:22:57.811737
+
+Comando (token de administrador):
+curl -s -X POST http://localhost:3004/suscripciones/4/cobrar -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' -d '{"simularRespuesta":"aprobado"}'
+
+Respuesta: 200 OK
+{"resultado":"aprobado","suscripcion":{"idSuscripcion":4,"idCliente":13,"idPlan":1,"fechaInicio":"2026-09-25T00:00:00.000Z","fechaCobro":"2026-09-29T05:22:57.811Z","estado":"cancelada", ...}}
+=> El cobro se procesa con exito (estado del resultado "aprobado") y fechaCobro avanza a la siguiente fecha, PESE a que la suscripcion permanece 'cancelada'.
+
+Verificacion en base de datos — se genero un pago real de Q450.00:
+docker exec elfrutal_db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT * FROM pagos WHERE \"idSuscripcion\"=4 ORDER BY \"idPago\" DESC LIMIT 3;"'
+ idPago | idPedido | idSuscripcion | monto  |   fecha    |  metodo  |  estado
+     36 |          |             4 | 450.00 | 2026-09-25 | pasarela | aprobado
+=> Se inserto un pago de Q450.00 sobre una suscripcion cancelada.
+
+Causa raiz: src/pagos/routes/suscripciones.routes.js:102-129 (POST /suscripciones/:id/cobrar) no valida el "estado" de la suscripcion antes de invocar sp_procesar_cobro_suscripcion; y db/01_schema.sql:465-516 (sp_procesar_cobro_suscripcion) tampoco valida que "estado" = 'activa' antes de insertar el pago y actualizar "fechaCobro". Ninguna de las dos capas impide cobrar una suscripcion cancelada o pausada.
+Impacto: un cliente que cancelo su suscripcion puede seguir siendo cobrado (o, en el flujo automatico de cobro periodico si este endpoint se usa para ese fin, seguiria generando cargos) — viola directamente el proposito de RF-16 (cancelacion de suscripciones) y expone al negocio a cobros indebidos y posibles reclamos/contracargos.
