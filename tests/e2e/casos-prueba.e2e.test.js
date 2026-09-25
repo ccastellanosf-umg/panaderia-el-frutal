@@ -749,3 +749,57 @@ describe("Producción diaria y reporte de inventario", () => {
     expect(merma.merma).toBe(merma.producido - merma.vendido);
   });
 });
+
+// ------------------------------------------------------------
+// CP-43..CP-45 — cobertura directa de RF-07, RF-09 y RF-14, que
+// solo se verificaban de forma indirecta.
+// ------------------------------------------------------------
+describe("Historial, insumos y surtido", () => {
+  it("CP-43 el cliente consulta su historial con el detalle de sus pedidos", async () => {
+    const cliente = await registrarCliente("Cliente CP-43");
+    const pedido = await api("POST", `${PEDIDOS_URL}/pedidos`, {
+      token: cliente.token,
+      body: { items: [{ idProducto: 1, cantidad: 3 }] },
+    });
+    expect(pedido.status).toBe(201);
+
+    const { status, body } = await api("GET", `${PEDIDOS_URL}/pedidos/mios`, { token: cliente.token });
+    expect(status).toBe(200);
+    expect(body).toHaveLength(1);
+    expect(body[0].idPedido).toBe(pedido.body.idPedido);
+    expect(body[0].items[0]).toMatchObject({ idProducto: 1, cantidad: 3 });
+  });
+
+  it("CP-44 el encargado de producción registra un insumo con su cantidad y nivel mínimo", async () => {
+    const nombre = `Insumo CP-44 ${Date.now()}`;
+    const { status, body } = await api("POST", `${PEDIDOS_URL}/inventario/insumos`, {
+      token: produccion.token,
+      body: { nombre, cantidadDisponible: 25, nivelMinimo: 5, unidadMedida: "kg" },
+    });
+    expect(status).toBe(201);
+    expect(body).toMatchObject({ nombre, cantidadDisponible: 25, nivelMinimo: 5, unidadMedida: "kg" });
+
+    const listado = await api("GET", `${PEDIDOS_URL}/inventario/insumos`, { token: produccion.token });
+    expect(listado.body.some((i) => i.idInsumo === body.idInsumo)).toBe(true);
+  });
+
+  it("CP-45 la suscripción conserva el surtido personalizado elegido por el cliente", async () => {
+    const cliente = await registrarCliente("Cliente CP-45");
+    const surtido = [
+      { idProducto: 1, cantidad: 6 },
+      { idProducto: 2, cantidad: 4 },
+    ];
+    const creada = await api("POST", `${PAGOS_URL}/suscripciones`, {
+      token: cliente.token,
+      body: { idPlan: 2, surtido },
+    });
+    expect(creada.status).toBe(201);
+
+    const { status, body } = await api("GET", `${PAGOS_URL}/suscripciones/mias`, { token: cliente.token });
+    expect(status).toBe(200);
+    const guardado = body[0].surtido
+      .map(({ idProducto, cantidad }) => ({ idProducto, cantidad }))
+      .sort((a, b) => a.idProducto - b.idProducto);
+    expect(guardado).toEqual(surtido);
+  });
+});

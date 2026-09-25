@@ -75,12 +75,15 @@ el producto `idProducto=1`).
 | CP-39 | consistencia del contrato de API | Tabla de decisión (Content-Type × validez del cuerpo)         | `POST /pedidos` con cuerpo `'{"items":['` (JSON incompleto)             | 400 con cuerpo JSON `{"error": "..."}` (nunca HTML)                    | DEF-09 (Cerrado) |
 | CP-40 | RF-04                          | Análisis de valores límite (fechaEntrega pasada vs. hoy)       | `POST /pedidos` con `fechaEntrega:"2020-01-01"`                         | 400                                                                       | DEF-10 (Abierto) |
 
-## CP-41..CP-42 — cobertura directa de RF-12 y RF-18
+## CP-41..CP-45 — cobertura directa de RF-12, RF-18, RF-07, RF-09 y RF-14
 
 | CP    | RF    | Técnica de prueba          | Datos de prueba | Resultado esperado |
 |-------|-------|-----------------------------|-----------------|--------------------|
 | CP-41 | RF-12 | Partición de equivalencia (registro válido) | operador de producción; `POST /inventario/produccion` con `idProducto:1`, fecha de hoy, `cantidadProducida:40` | 201 y el registro aparece en `GET /inventario/produccion` del día |
 | CP-42 | RF-18 | Partición de equivalencia (rango de fechas válido) | administrador; `GET /reportes/inventario` con desde = hasta = hoy | 200 con insumos, críticos y mermas; merma = producido − vendido |
+| CP-43 | RF-07 | Partición de equivalencia (cliente con pedidos) | cliente nuevo con un pedido de 3 unidades del producto 1; `GET /pedidos/mios` | 200 con su único pedido y el detalle del ítem |
+| CP-44 | RF-09 | Partición de equivalencia (insumo válido) | operador de producción; `POST /inventario/insumos` con cantidad 25, mínimo 5, unidad kg | 201 con los datos del insumo y aparece en `GET /inventario/insumos` |
+| CP-45 | RF-14 | Partición de equivalencia (surtido de varios productos) | cliente nuevo; plan 2 con surtido [{1,6},{2,4}]; `GET /suscripciones/mias` | 201 y la suscripción conserva exactamente el surtido elegido |
 
 El resultado también se exporta a `test-results/e2e-junit.xml`
 (formato JUnit) para subirlo a Azure Test Plans.

@@ -55,10 +55,13 @@ const CASOS_DOCUMENTO = [
   ["CP-30", "RF-19", "Partición de Equivalencia", "Historial de ventas de 30 días.", "Fórmula de sugerencia activa.", "Solicitar sugerencia de horneado.", "Retorna sugerencias estimadas por producto.", "Baja"],
 ];
 
-// Casos agregados para cubrir de forma directa RF-12 y RF-18.
+// Casos agregados para cubrir de forma directa RF-12, RF-18, RF-07, RF-09 y RF-14.
 const CASOS_COBERTURA = [
   ["CP-41", "RF-12", "Partición de Equivalencia", "Operador de producción autenticado.", "idProducto 1, fecha de hoy, cantidadProducida 40.", "Registrar la producción diaria (POST /inventario/produccion) y consultar el listado del día.", "Código HTTP 201 y el registro aparece en el listado de producción del día.", "Media"],
   ["CP-42", "RF-18", "Partición de Equivalencia", "Administrador autenticado; producción registrada en el período.", "Rango desde = hasta = fecha de hoy.", "Solicitar el reporte de inventario (GET /reportes/inventario).", "Código HTTP 200 con insumos, insumos críticos y mermas (merma = producido − vendido).", "Media"],
+  ["CP-43", "RF-07", "Partición de Equivalencia", "Cliente autenticado con un pedido registrado.", "Pedido de 3 unidades del producto 1.", "Consultar el historial de pedidos (GET /pedidos/mios).", "Código HTTP 200 con el pedido del cliente y el detalle de sus ítems.", "Media"],
+  ["CP-44", "RF-09", "Partición de Equivalencia", "Operador de producción autenticado.", "Insumo nuevo: cantidad 25, nivel mínimo 5, unidad kg.", "Registrar el insumo (POST /inventario/insumos) y consultar el listado.", "Código HTTP 201 con los datos del insumo, que aparece en el listado.", "Media"],
+  ["CP-45", "RF-14", "Partición de Equivalencia", "Cliente autenticado.", "Plan 2 con surtido: producto 1 × 6 y producto 2 × 4.", "Contratar la suscripción y consultar las suscripciones del cliente.", "Código HTTP 201 y la suscripción conserva exactamente el surtido elegido.", "Media"],
 ];
 
 // CP-31..CP-40: tabla "CP-31..CP-40" de tests/e2e/README.md.
@@ -127,6 +130,7 @@ const casos = [...CASOS_DOCUMENTO, ...casosDeDefectos(defectos), ...CASOS_COBERT
 const ejec1 = resultados("docs/defectos/ejecucion-1-junit.xml");
 const ejec2 = resultados("docs/defectos/ejecucion-2-junit.xml");
 const ejec4 = resultados("docs/defectos/ejecucion-4-azure-junit.xml");
+const ejec5 = resultados("docs/defectos/ejecucion-5-azure-junit.xml");
 fs.mkdirSync(salida, { recursive: true });
 
 // 1. Casos de prueba (Test Plans / Boards: un caso con 2 pasos).
@@ -155,15 +159,16 @@ for (const d of defectos) {
 fs.writeFileSync(path.join(salida, "bugs.csv"), csv(filasBugs));
 
 // 3. Resultados de las dos ejecuciones (para registrar en Test Plans).
-const filasRes = [["Caso", "Requerimiento", "Técnica", "Ejecución 1", "Ejecución 2", "Ejecución 4 (Azure)", "Defecto"]];
+const filasRes = [["Caso", "Requerimiento", "Técnica", "Ejecución 1", "Ejecución 2", "Ejecución 4 (Azure)", "Ejecución 5 (Azure)", "Defecto"]];
 for (const [cp, rf, tecnica] of casos) {
   const n = Number(cp.slice(3));
-  filasRes.push([cp, rf, tecnica, ejec1[cp] || "No existía", ejec2[cp] || "No existía", ejec4[cp] || "", n > 30 && n <= 40 ? `DEF-${String(n - 30).padStart(2, "0")}` : ""]);
+  filasRes.push([cp, rf, tecnica, ejec1[cp] || "No existía", ejec2[cp] || "No existía", ejec4[cp] || "No existía", ejec5[cp] || "", n > 30 && n <= 40 ? `DEF-${String(n - 30).padStart(2, "0")}` : ""]);
 }
 fs.writeFileSync(path.join(salida, "resultados-ejecuciones.csv"), csv(filasRes));
 
 const cuenta = (m, v) => Object.values(m).filter((x) => x === v).length;
 console.log(`casos: ${casos.length}, bugs: ${defectos.length}`);
 console.log(`ejecución 1: ${cuenta(ejec1, "Aprobado")} aprobados, ${cuenta(ejec1, "Fallido")} fallidos`);
+console.log(`ejecución 5: ${cuenta(ejec5, "Aprobado")} aprobados, ${cuenta(ejec5, "Fallido")} fallidos`);
 console.log(`ejecución 4: ${cuenta(ejec4, "Aprobado")} aprobados, ${cuenta(ejec4, "Fallido")} fallidos`);
 console.log(`ejecución 2: ${cuenta(ejec2, "Aprobado")} aprobados, ${cuenta(ejec2, "Fallido")} fallidos`);
