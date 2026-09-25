@@ -2,6 +2,7 @@
 // Microservicio de Autenticación — RF-20, RF-21, RNF-02
 // Exporta la app de Express sin escuchar puerto (permite pruebas con
 // supertest sin abrir sockets reales).
+require("./lib/asyncErrors"); // debe cargarse antes de las rutas (ver comentario en el archivo)
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/auth.routes");
@@ -16,5 +17,22 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/auth", authRoutes);
+
+// DEF-09: cuerpo JSON malformado -> 400 JSON consistente (en vez del
+// HTML por defecto de Express).
+app.use((err, _req, res, next) => {
+  if (err && err.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "JSON inválido" });
+  }
+  next(err);
+});
+
+// DEF-01/DEF-02: red de seguridad final — cualquier error no
+// controlado responde 500 JSON en vez de tumbar el proceso.
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  console.error("Error no controlado:", err);
+  res.status(500).json({ error: "Error interno del servidor." });
+});
 
 module.exports = app;

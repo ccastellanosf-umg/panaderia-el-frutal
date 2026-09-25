@@ -103,6 +103,46 @@ describe("Microservicio de catálogo", () => {
       expect(res.statusCode).toBe(400);
       expect(mockProducto.create).not.toHaveBeenCalled();
     });
+
+    it("DEF-01: precio 'Infinity' responde 400 y no crea el producto", async () => {
+      const res = await request(app)
+        .post("/productos")
+        .set("Authorization", `Bearer ${tokenAdmin()}`)
+        .send({ nombre: "QA precio infinito", precio: "Infinity" });
+      expect(res.statusCode).toBe(400);
+      expect(mockProducto.create).not.toHaveBeenCalled();
+    });
+
+    it("DEF-01: precio con más de 2 decimales responde 400", async () => {
+      const res = await request(app)
+        .post("/productos")
+        .set("Authorization", `Bearer ${tokenAdmin()}`)
+        .send({ nombre: "QA precio decimales", precio: 19.999 });
+      expect(res.statusCode).toBe(400);
+      expect(mockProducto.create).not.toHaveBeenCalled();
+    });
+
+    it("DEF-08: precio null responde 400 y no crea el producto", async () => {
+      const res = await request(app)
+        .post("/productos")
+        .set("Authorization", `Bearer ${tokenAdmin()}`)
+        .send({ nombre: "QA precio null", precio: null });
+      expect(res.statusCode).toBe(400);
+      expect(mockProducto.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("DEF-09: cuerpo JSON malformado", () => {
+    it("POST /productos con JSON malformado responde 400 JSON", async () => {
+      const res = await request(app)
+        .post("/productos")
+        .set("Authorization", `Bearer ${tokenAdmin()}`)
+        .set("Content-Type", "application/json")
+        .send('{"nombre":');
+      expect(res.statusCode).toBe(400);
+      expect(res.headers["content-type"]).toMatch(/json/);
+      expect(res.body).toEqual({ error: "JSON inválido" });
+    });
   });
 
   describe("PATCH /productos/:id/disponibilidad", () => {

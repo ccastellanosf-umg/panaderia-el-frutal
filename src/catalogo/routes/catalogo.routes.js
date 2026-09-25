@@ -15,6 +15,24 @@ function aNumero(producto) {
   return { ...producto, precio: Number(producto.precio) };
 }
 
+// DEF-01/DEF-08: valida que "precio" sea obligatorio, un número finito
+// (rechaza Infinity/-Infinity/NaN), >= 0 y con a lo sumo 2 decimales.
+// null/undefined/"" se tratan igual que "ausente" (DEF-08).
+function precioValido(precio) {
+  if (precio === undefined || precio === null || precio === "") {
+    return { ok: false };
+  }
+  const precioNum = Number(precio);
+  if (!Number.isFinite(precioNum) || precioNum < 0) {
+    return { ok: false };
+  }
+  const redondeado = Math.round(precioNum * 100) / 100;
+  if (Math.abs(redondeado - precioNum) > 1e-9) {
+    return { ok: false }; // más de 2 decimales
+  }
+  return { ok: true, precioNum: redondeado };
+}
+
 async function invalidarCache() {
   try {
     const cliente = await obtenerClienteConectado();
@@ -63,13 +81,15 @@ router.post("/", verificarToken(["administrador"]), async (req, res) => {
   if (!nombre || !String(nombre).trim()) {
     return res.status(400).json({ error: "El nombre es obligatorio." });
   }
-  const precioNum = Number(precio);
-  if (precio === undefined || Number.isNaN(precioNum) || precioNum < 0) {
-    return res.status(400).json({ error: "El precio debe ser un número mayor o igual a 0." });
+  const validacionPrecio = precioValido(precio);
+  if (!validacionPrecio.ok) {
+    return res.status(400).json({
+      error: "El precio es obligatorio y debe ser un número finito mayor o igual a 0 con máximo 2 decimales.",
+    });
   }
 
   const producto = await prisma.producto.create({
-    data: { nombre, descripcion, precio: precioNum, fotoUrl, disponibilidad: true },
+    data: { nombre, descripcion, precio: validacionPrecio.precioNum, fotoUrl, disponibilidad: true },
   });
   await invalidarCache();
   res.status(201).json(aNumero(producto));
@@ -82,15 +102,17 @@ router.put("/:id", verificarToken(["administrador"]), async (req, res) => {
   if (!nombre || !String(nombre).trim()) {
     return res.status(400).json({ error: "El nombre es obligatorio." });
   }
-  const precioNum = Number(precio);
-  if (precio === undefined || Number.isNaN(precioNum) || precioNum < 0) {
-    return res.status(400).json({ error: "El precio debe ser un número mayor o igual a 0." });
+  const validacionPrecio = precioValido(precio);
+  if (!validacionPrecio.ok) {
+    return res.status(400).json({
+      error: "El precio es obligatorio y debe ser un número finito mayor o igual a 0 con máximo 2 decimales.",
+    });
   }
 
   try {
     const producto = await prisma.producto.update({
       where: { idProducto: Number(req.params.id) },
-      data: { nombre, descripcion, precio: precioNum, fotoUrl },
+      data: { nombre, descripcion, precio: validacionPrecio.precioNum, fotoUrl },
     });
     await invalidarCache();
     res.status(200).json(aNumero(producto));

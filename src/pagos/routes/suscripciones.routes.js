@@ -112,13 +112,24 @@ router.post("/:id/cobrar", verificarToken(["administrador"]), async (req, res) =
   }
 
   try {
+    const actual = await obtenerSuscripcionCompleta(idSuscripcion);
+    if (!actual) return res.status(404).json({ error: "Suscripción no encontrada." });
+    // DEF-04: solo se puede cobrar una suscripción activa (no
+    // cancelada ni pausada). Verificación en la capa de aplicación;
+    // sp_procesar_cobro_suscripcion también la aplica como defensa
+    // en profundidad.
+    if (actual.estado !== "activa") {
+      return res.status(409).json({
+        error: "La suscripción no está activa; no se puede procesar el cobro.",
+      });
+    }
+
     const resultado = procesarCobro(simularRespuesta);
     await query(`CALL sp_procesar_cobro_suscripcion($1::INT, $2::VARCHAR(20))`, [
       idSuscripcion,
       resultado,
     ]);
     const suscripcion = await obtenerSuscripcionCompleta(idSuscripcion);
-    if (!suscripcion) return res.status(404).json({ error: "Suscripción no encontrada." });
     return res.status(200).json({ resultado, suscripcion });
   } catch (err) {
     const mapeado = mapearErrorDb(err);

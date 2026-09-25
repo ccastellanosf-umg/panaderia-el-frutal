@@ -29,14 +29,19 @@ router.post("/registro", async (req, res) => {
       return res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres." });
     }
 
-    const existente = await prisma.usuario.findUnique({ where: { correo } });
+    // DEF-06: normaliza el correo (trim + minúsculas) antes de buscar
+    // y de guardar, para que "QA.Tester@x.com" y "qa.tester@x.com" se
+    // traten como el mismo correo.
+    const correoNormalizado = String(correo).trim().toLowerCase();
+
+    const existente = await prisma.usuario.findUnique({ where: { correo: correoNormalizado } });
     if (existente) {
       return res.status(400).json({ error: "Correo en uso" });
     }
 
     const contrasenaHash = await bcrypt.hash(contrasena, 10);
     const usuario = await prisma.usuario.create({
-      data: { nombre, correo, contrasenaHash, rol: "cliente" },
+      data: { nombre, correo: correoNormalizado, contrasenaHash, rol: "cliente" },
     });
     await prisma.cliente.create({
       data: { idUsuario: usuario.idUsuario, telefono: telefono || null },
@@ -56,7 +61,9 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Correo y contraseña son obligatorios." });
     }
 
-    const usuario = await prisma.usuario.findUnique({ where: { correo } });
+    // DEF-06: mismo criterio de normalización que en /registro.
+    const correoNormalizado = String(correo).trim().toLowerCase();
+    const usuario = await prisma.usuario.findUnique({ where: { correo: correoNormalizado } });
     if (!usuario) {
       console.warn(`Intento de login fallido para correo: ${correo}`);
       return res.status(401).json({ error: "Credenciales inválidas." });

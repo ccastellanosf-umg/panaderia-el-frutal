@@ -199,6 +199,14 @@ CREATE INDEX idx_suscripciones_fechacobro
 CREATE INDEX idx_productos_disponibilidad
     ON productos ("disponibilidad");
 
+-- DEF-06: la columna "correo" ya tiene UNIQUE, pero es sensible a
+-- mayúsculas/minúsculas — un índice funcional sobre LOWER(correo)
+-- impide registrar dos cuentas con el mismo correo en distinta
+-- capitalización (el servicio de auth normaliza a minúsculas antes
+-- de leer/escribir, pero este índice es la garantía a nivel de BD).
+CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_correo_lower
+    ON usuarios (LOWER("correo"));
+
 
 -- ============================================================
 -- 2. FUNCIONES
@@ -473,11 +481,19 @@ DECLARE
     v_idCliente        INT;
     v_monto            DECIMAL(10,2);
     v_fechaCobroActual TIMESTAMP;
+    v_estado           VARCHAR(20);
 BEGIN
-    SELECT "idPlan", "idCliente", "fechaCobro"
-    INTO v_idPlan, v_idCliente, v_fechaCobroActual
+    SELECT "idPlan", "idCliente", "fechaCobro", "estado"
+    INTO v_idPlan, v_idCliente, v_fechaCobroActual, v_estado
     FROM suscripciones
     WHERE "idSuscripcion" = "p_idSuscripcion";
+
+    -- DEF-04: no se puede cobrar una suscripción que no esté activa
+    -- (cancelada o pausada). Defensa en profundidad: el endpoint
+    -- también valida esto antes de invocar el procedimiento.
+    IF v_estado IS DISTINCT FROM 'activa' THEN
+        RAISE EXCEPTION 'La suscripción no está activa; no se puede procesar el cobro.';
+    END IF;
 
     SELECT "precio" INTO v_monto
     FROM planes

@@ -27,7 +27,11 @@ async function conTransaccion(fn) {
 
 function mapearErrorDb(err) {
   if (err.code === "P0001") {
-    return { status: 400, body: { error: err.message } };
+    // DEF-04: el procedimiento rechaza el cobro de una suscripción
+    // que no está activa — es un conflicto de estado (409), no un
+    // error de validación de datos (400).
+    const esConflicto = (err.message || "").includes("no está activa");
+    return { status: esConflicto ? 409 : 400, body: { error: err.message } };
   }
   if (err.code === "23514") {
     return { status: 400, body: { error: "Datos inválidos: violan una regla de negocio." } };

@@ -8,6 +8,17 @@ const router = express.Router();
 
 const permitirInventario = verificarToken(["administrador", "operador"], ["produccion"]);
 
+// DEF-02: mismo criterio de validación de fechas que reportes.routes.js
+// (formato YYYY-MM-DD, fecha calendario real) para este endpoint de
+// reporte de producción.
+const REGEX_FECHA = /^\d{4}-\d{2}-\d{2}$/;
+function fechaValida(valor) {
+  if (!REGEX_FECHA.test(valor)) return false;
+  const fecha = new Date(`${valor}T00:00:00Z`);
+  if (Number.isNaN(fecha.getTime())) return false;
+  return fecha.toISOString().slice(0, 10) === valor;
+}
+
 function aNumeroInsumo(i) {
   return {
     ...i,
@@ -141,6 +152,12 @@ router.put("/recetas/:idProducto", permitirInventario, async (req, res) => {
 // GET /inventario/produccion — RF-12
 router.get("/produccion", permitirInventario, async (req, res) => {
   const { desde, hasta } = req.query;
+  if (desde !== undefined && !fechaValida(desde)) {
+    return res.status(400).json({ error: `"desde" no es una fecha válida (formato esperado YYYY-MM-DD).` });
+  }
+  if (hasta !== undefined && !fechaValida(hasta)) {
+    return res.status(400).json({ error: `"hasta" no es una fecha válida (formato esperado YYYY-MM-DD).` });
+  }
   const params = [];
   let sql = `SELECT pd.*, pr."nombre" AS "producto" FROM produccion_diaria pd
              JOIN productos pr ON pr."idProducto" = pd."idProducto"`;

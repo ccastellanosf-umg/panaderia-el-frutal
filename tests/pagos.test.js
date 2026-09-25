@@ -26,16 +26,24 @@ const tokenAdmin = () =>
 
 beforeEach(() => jest.clearAllMocks());
 
-function mockSuscripcionCompleta(idSuscripcion, estado) {
+// idSuscripcion/estado describen el estado FINAL (tras el cobro).
+// estadoInicial (por defecto igual a estado) es lo que devuelve la
+// primera consulta de obtenerSuscripcionCompleta, que en la ruta
+// POST /:id/cobrar ahora ocurre ANTES de procesar el cobro (DEF-04).
+function mockSuscripcionCompleta(idSuscripcion, estado, { estadoInicial } = {}) {
+  const estadoPrimeraLlamada = estadoInicial !== undefined ? estadoInicial : estado;
+  let llamadas = 0;
   mockQuery.mockImplementation((sql) => {
     if (sql.includes('JOIN planes pl')) {
+      llamadas += 1;
+      const estadoActual = llamadas === 1 ? estadoPrimeraLlamada : estado;
       return Promise.resolve({
         rows: [
           {
             idSuscripcion,
             idCliente: 1,
             idPlan: 1,
-            estado,
+            estado: estadoActual,
             planNombre: "Plan diario",
             frecuencia: "diario",
             precio: "450.00",
@@ -102,8 +110,8 @@ describe("Microservicio de pagos", () => {
       expect(res.body.resultado).toBe("aprobado");
     });
 
-    it("CP-26: rechazado pausa la suscripción (DEF-04)", async () => {
-      mockSuscripcionCompleta(5, "pausada");
+    it("CP-26: rechazado pausa la suscripción", async () => {
+      mockSuscripcionCompleta(5, "pausada", { estadoInicial: "activa" });
       const res = await request(app)
         .post("/suscripciones/5/cobrar")
         .set("Authorization", `Bearer ${tokenAdmin()}`)
@@ -111,6 +119,28 @@ describe("Microservicio de pagos", () => {
       expect(res.statusCode).toBe(200);
       expect(res.body.resultado).toBe("rechazado");
       expect(res.body.suscripcion.estado).toBe("pausada");
+    });
+
+    it("DEF-04: cobrar una suscripción cancelada responde 409 y no llama al procedimiento de cobro", async () => {
+      mockSuscripcionCompleta(4, "cancelada");
+      const res = await request(app)
+        .post("/suscripciones/4/cobrar")
+        .set("Authorization", `Bearer ${tokenAdmin()}`)
+        .send({ simularRespuesta: "aprobado" });
+      expect(res.statusCode).toBe(409);
+      expect(mockQuery).not.toHaveBeenCalledWith(
+        expect.stringContaining("CALL sp_procesar_cobro_suscripcion"),
+        expect.anything()
+      );
+    });
+
+    it("DEF-04: cobrar una suscripción pausada responde 409", async () => {
+      mockSuscripcionCompleta(6, "pausada");
+      const res = await request(app)
+        .post("/suscripciones/6/cobrar")
+        .set("Authorization", `Bearer ${tokenAdmin()}`)
+        .send({ simularRespuesta: "aprobado" });
+      expect(res.statusCode).toBe(409);
     });
 
     it("cliente (no admin) recibe 403", async () => {
@@ -160,6 +190,19 @@ describe("Microservicio de pagos", () => {
         .set("Authorization", `Bearer ${tokenCliente(1)}`);
 
       expect(res.statusCode).toBe(409);
+    });
+  });
+
+  describe("DEF-09: cuerpo JSON malformado", () => {
+    it("POST /suscripciones con JSON malformado responde 400 JSON", async () => {
+      const res = await request(app)
+        .post("/suscripciones")
+        .set("Authorization", `Bearer ${tokenCliente()}`)
+        .set("Content-Type", "application/json")
+        .send('{"idPlan":');
+      expect(res.statusCode).toBe(400);
+      expect(res.headers["content-type"]).toMatch(/json/);
+      expect(res.body).toEqual({ error: "JSON inválido" });
     });
   });
 

@@ -255,4 +255,43 @@ describe("Microservicio de pedidos", () => {
       expect(res.body[0].total).toBe(5);
     });
   });
+
+  describe("DEF-09: cuerpo JSON malformado", () => {
+    it("POST /pedidos con JSON malformado responde 400 JSON", async () => {
+      const res = await request(app)
+        .post("/pedidos")
+        .set("Authorization", `Bearer ${tokenCliente()}`)
+        .set("Content-Type", "application/json")
+        .send('{"items":[');
+      expect(res.statusCode).toBe(400);
+      expect(res.headers["content-type"]).toMatch(/json/);
+      expect(res.body).toEqual({ error: "JSON inválido" });
+    });
+  });
+
+  describe("GET /reportes/ventas", () => {
+    it("DEF-02: fecha 'desde' inválida responde 400 y no consulta la base de datos", async () => {
+      const res = await request(app)
+        .get("/reportes/ventas?desde=no-es-fecha&hasta=2026-12-31")
+        .set("Authorization", `Bearer ${tokenAdmin()}`);
+      expect(res.statusCode).toBe(400);
+      expect(mockQuery).not.toHaveBeenCalled();
+    });
+
+    it("DEF-02: fecha calendario inexistente (2026-02-30) responde 400", async () => {
+      const res = await request(app)
+        .get("/reportes/ventas?desde=2026-02-30&hasta=2026-12-31")
+        .set("Authorization", `Bearer ${tokenAdmin()}`);
+      expect(res.statusCode).toBe(400);
+    });
+
+    it("CP-29: rango de fechas válido responde 200", async () => {
+      mockQuery.mockResolvedValue({ rows: [] });
+      const res = await request(app)
+        .get("/reportes/ventas?desde=2026-01-01&hasta=2026-12-31")
+        .set("Authorization", `Bearer ${tokenAdmin()}`);
+      expect(res.statusCode).toBe(200);
+      expect(Array.isArray(res.body.porProducto)).toBe(true);
+    });
+  });
 });

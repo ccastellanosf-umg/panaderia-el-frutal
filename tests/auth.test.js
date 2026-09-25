@@ -114,6 +114,25 @@ describe("Microservicio de autenticación", () => {
       });
       expect(res.statusCode).toBe(400);
     });
+
+    it("DEF-06: correo que difiere solo en mayúsculas de uno existente responde 400 'Correo en uso'", async () => {
+      // El correo ya existe en BD guardado en minúsculas; el usuario
+      // intenta registrarse con una variación de mayúsculas.
+      mockUsuario.findUnique.mockResolvedValue({ idUsuario: 1, correo: "qa.tester2@elfrutal-test.com" });
+
+      const res = await request(app).post("/auth/registro").send({
+        nombre: "Dup Case",
+        correo: "QA.Tester2@Elfrutal-Test.com",
+        contrasena: "Qatest1234",
+      });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body).toEqual({ error: "Correo en uso" });
+      // Debe haber normalizado (trim + minúsculas) antes de buscar.
+      expect(mockUsuario.findUnique).toHaveBeenCalledWith({
+        where: { correo: "qa.tester2@elfrutal-test.com" },
+      });
+    });
   });
 
   describe("POST /auth/login", () => {
@@ -181,6 +200,18 @@ describe("Microservicio de autenticación", () => {
       const res = await request(app).get("/auth/me").set("Authorization", `Bearer ${token}`);
       expect(res.statusCode).toBe(200);
       expect(res.body.usuario.idUsuario).toBe(1);
+    });
+  });
+
+  describe("DEF-09: cuerpo JSON malformado", () => {
+    it("POST /auth/registro con JSON malformado responde 400 JSON", async () => {
+      const res = await request(app)
+        .post("/auth/registro")
+        .set("Content-Type", "application/json")
+        .send('{"nombre":');
+      expect(res.statusCode).toBe(400);
+      expect(res.headers["content-type"]).toMatch(/json/);
+      expect(res.body).toEqual({ error: "JSON inválido" });
     });
   });
 
