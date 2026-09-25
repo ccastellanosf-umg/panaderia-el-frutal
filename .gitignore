@@ -38,3 +38,11 @@ test-results/
 
 # Configuración local de Claude Code
 .claude/settings.local.json
+
+# Borradores y archivos de trabajo del entregable (solo locales)
+docs/entregable/
+Claude outputs/
+azure_boards_setup.sh
+logs_auth*/
+logs_auth*.zip
+.atl/
