@@ -45,6 +45,13 @@ if $RESET_DB; then
   psql "$DATABASE_URL" -q -v ON_ERROR_STOP=1 -f db/01_schema.sql
   psql "$DATABASE_URL" -q -v ON_ERROR_STOP=1 -f db/02_seed.sql
   psql "$DATABASE_URL" -t -c "SELECT count(*) AS productos FROM productos;"
+else
+  # Incremental, idempotent migrations keep existing data.
+  step "Applying database migrations"
+  for m in db/migrations/*.sql; do
+    echo "$m"
+    psql "$DATABASE_URL" -q -v ON_ERROR_STOP=1 -f "$m"
+  done
 fi
 
 # ------------------------------------------------------------
