@@ -206,7 +206,10 @@ stages:
           - task: AzureStaticWebApp@0
             displayName: 'Desplegar frontend en $(staticWebAppName)'
             inputs:
-              app_location: '$(Pipeline.Workspace)/frontend-build'
+              # The task mounts only `cwd` into its container, so it must
+              # point at the workspace where the artifact is downloaded.
+              cwd: '$(Pipeline.Workspace)'
+              app_location: 'frontend-build'
               skip_app_build: true
               azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)
 
