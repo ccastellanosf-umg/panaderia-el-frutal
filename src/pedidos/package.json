@@ -1,8 +1,22 @@
 {
   "name": "elfrutal-pedidos-service",
-  "version": "0.1.0",
-  "description": "Microservicio de gestión de pedidos — scaffolding para el Sprint 2",
+  "version": "1.0.0",
+  "description": "Microservicio de gestión de pedidos e inventario — Transformación Digital de Panadería El Frutal",
   "main": "index.js",
-  "scripts": { "start": "node index.js" },
-  "dependencies": { "express": "^4.19.2" }
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "jest --passWithNoTests"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  }
 }
