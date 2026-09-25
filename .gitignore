@@ -32,3 +32,9 @@ Thumbs.db
 
 # Cobertura de pruebas
 coverage/
+
+# Reportes de ejecución de pruebas (se regeneran en cada corrida)
+test-results/
+
+# Configuración local de Claude Code
+.claude/settings.local.json

@@ -94,9 +94,19 @@ CREATE TABLE suscripciones (
         ("idCliente") ON DELETE CASCADE,
     "idPlan"         INT NOT NULL REFERENCES planes ("idPlan"),
     "fechaInicio"    DATE NOT NULL DEFAULT CURRENT_DATE,
-    "fechaCobro"     DATE NOT NULL,
+    "fechaCobro"     TIMESTAMP NOT NULL,
     "estado"         VARCHAR(20) NOT NULL DEFAULT 'activa'
         CHECK ("estado" IN ('activa', 'pausada', 'cancelada'))
+);
+
+-- 1.8.1 suscripcion_producto: surtido de productos de una suscripción
+CREATE TABLE suscripcion_producto (
+    "idSuscripcion"  INT NOT NULL REFERENCES suscripciones
+        ("idSuscripcion") ON DELETE CASCADE,
+    "idProducto"     INT NOT NULL REFERENCES productos
+        ("idProducto"),
+    "cantidad"       INT NOT NULL CHECK ("cantidad" > 0),
+    PRIMARY KEY ("idSuscripcion", "idProducto")
 );
 
 -- 1.9 pedidos: pedidos ocasionales o derivados de una suscripción
@@ -119,6 +129,8 @@ CREATE TABLE pedidos (
         CHECK ("tipo" IN ('ocasional', 'suscripcion')),
     "total"          DECIMAL(10,2) NOT NULL DEFAULT 0
         CHECK ("total" >= 0),
+    "direccionEntrega"  VARCHAR(200),
+    "fechaEntrega"      DATE,
     CHECK (
         (("idCliente" IS NOT NULL)::INT
          + ("idSuscripcion" IS NOT NULL)::INT) = 1
@@ -159,6 +171,8 @@ CREATE TABLE notificaciones (
     "idPedido"        INT REFERENCES pedidos ("idPedido"),
     "idCliente"       INT REFERENCES clientes ("idCliente"),
     "canal"           VARCHAR(20) NOT NULL DEFAULT 'whatsapp',
+    "mensaje"         TEXT,
+    "tipo"            VARCHAR(30) NOT NULL DEFAULT 'estado_pedido',
     "fechaEnvio"      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "estado"          VARCHAR(20) NOT NULL DEFAULT 'enviada'
         CHECK ("estado" IN ('enviada', 'entregada', 'fallida')),
@@ -166,6 +180,15 @@ CREATE TABLE notificaciones (
         (("idPedido" IS NOT NULL)::INT
          + ("idCliente" IS NOT NULL)::INT) = 1
     )
+);
+
+-- 1.13 produccion_diaria: registro de unidades producidas por día (RF-12)
+CREATE TABLE produccion_diaria (
+    "idProduccion"       SERIAL PRIMARY KEY,
+    "idProducto"         INT NOT NULL REFERENCES productos
+        ("idProducto"),
+    "fecha"              DATE NOT NULL DEFAULT CURRENT_DATE,
+    "cantidadProducida"  INT NOT NULL CHECK ("cantidadProducida" >= 0)
 );
 
 -- Índices sobre campos de consulta frecuente (RNF-01)
@@ -219,9 +242,9 @@ $$ LANGUAGE plpgsql;
 -- 2.3 Calcula la próxima fecha de cobro según la frecuencia
 CREATE OR REPLACE FUNCTION fn_proxima_fecha_cobro(
     "p_idPlan" INT,
-    "p_fechaBase" DATE
+    "p_fechaBase" TIMESTAMP
 )
-RETURNS DATE AS $$
+RETURNS TIMESTAMP AS $$
 DECLARE
     v_frecuencia VARCHAR(20);
 BEGIN
@@ -294,9 +317,13 @@ FOR EACH ROW EXECUTE FUNCTION trg_fn_actualizar_total_pedido();
 CREATE OR REPLACE FUNCTION trg_fn_descontar_inventario()
 RETURNS TRIGGER AS $$
 BEGIN
+    -- CU-08 3a: si el descuento dejaría el stock en negativo, se
+    -- fija en 0 (alerta vía vw_inventario_critico) en vez de rechazar.
     UPDATE insumos i
-    SET "cantidadDisponible" = i."cantidadDisponible"
-        - (pi."cantidadRequerida" * NEW."cantidad")
+    SET "cantidadDisponible" = GREATEST(
+        0,
+        i."cantidadDisponible" - (pi."cantidadRequerida" * NEW."cantidad")
+    )
     FROM producto_insumo pi
     WHERE pi."idInsumo" = i."idInsumo"
       AND pi."idProducto" = NEW."idProducto";
@@ -431,18 +458,24 @@ END;
 $$;
 
 -- 4.3 Procesa el cobro periódico de una suscripción (RF-15)
+-- "p_resultadoPasarela" IN ('aprobado', 'rechazado'): resultado ya
+-- obtenido de la pasarela de pago (simulada o real) antes de invocar
+-- el procedimiento. Si es rechazado, la suscripción pasa a 'pausada'
+-- y se genera una notificación de alerta (RF-16, DEF-04).
 CREATE OR REPLACE PROCEDURE sp_procesar_cobro_suscripcion(
-    IN "p_idSuscripcion" INT
+    IN "p_idSuscripcion"      INT,
+    IN "p_resultadoPasarela"  VARCHAR(20)
 )
 LANGUAGE plpgsql
 AS $$
 DECLARE
     v_idPlan           INT;
+    v_idCliente        INT;
     v_monto            DECIMAL(10,2);
-    v_fechaCobroActual DATE;
+    v_fechaCobroActual TIMESTAMP;
 BEGIN
-    SELECT "idPlan", "fechaCobro"
-    INTO v_idPlan, v_fechaCobroActual
+    SELECT "idPlan", "idCliente", "fechaCobro"
+    INTO v_idPlan, v_idCliente, v_fechaCobroActual
     FROM suscripciones
     WHERE "idSuscripcion" = "p_idSuscripcion";
 
@@ -450,16 +483,35 @@ BEGIN
     FROM planes
     WHERE "idPlan" = v_idPlan;
 
-    INSERT INTO pagos
-        ("idSuscripcion", "monto", "fecha", "metodo", "estado")
-    VALUES
-        ("p_idSuscripcion", v_monto, CURRENT_DATE,
-         'pasarela', 'aprobado');
+    IF "p_resultadoPasarela" = 'aprobado' THEN
+        INSERT INTO pagos
+            ("idSuscripcion", "monto", "fecha", "metodo", "estado")
+        VALUES
+            ("p_idSuscripcion", v_monto, CURRENT_DATE,
+             'pasarela', 'aprobado');
 
-    UPDATE suscripciones
-    SET "fechaCobro" =
-        fn_proxima_fecha_cobro(v_idPlan, v_fechaCobroActual)
-    WHERE "idSuscripcion" = "p_idSuscripcion";
+        UPDATE suscripciones
+        SET "fechaCobro" =
+            fn_proxima_fecha_cobro(v_idPlan, v_fechaCobroActual)
+        WHERE "idSuscripcion" = "p_idSuscripcion";
+    ELSE
+        INSERT INTO pagos
+            ("idSuscripcion", "monto", "fecha", "metodo", "estado")
+        VALUES
+            ("p_idSuscripcion", v_monto, CURRENT_DATE,
+             'pasarela', 'rechazado');
+
+        UPDATE suscripciones
+        SET "estado" = 'pausada'
+        WHERE "idSuscripcion" = "p_idSuscripcion";
+
+        INSERT INTO notificaciones
+            ("idCliente", "canal", "mensaje", "tipo", "estado")
+        VALUES
+            (v_idCliente, 'whatsapp',
+             'Tu cobro de suscripción fue rechazado y tu suscripción quedó pausada.',
+             'cobro_rechazado', 'enviada');
+    END IF;
 END;
 $$;
 
