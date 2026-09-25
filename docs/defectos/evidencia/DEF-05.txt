@@ -1,0 +1,26 @@
+DEF-05 — Pedidos se aceptan y descuentan insumos aunque el stock sea insuficiente (clamp a 0 oculta el faltante real)
+Fecha de prueba: 2026-09-25
+
+Comando 1: estado inicial de insumos (admin)
+curl -s http://localhost:3003/inventario/insumos -H "Authorization: Bearer $ADMIN"
+Respuesta relevante: {"idInsumo":1,"nombre":"Harina","cantidadDisponible":0.5,"nivelMinimo":10,"unidadMedida":"kg"}
+
+Comando 2: receta de "Pan francés" (idProducto=1)
+curl -s http://localhost:3003/inventario/recetas/1 -H "Authorization: Bearer $ADMIN"
+Respuesta: [{"idInsumo":1,"nombre":"Harina","unidadMedida":"kg","cantidadRequerida":1},{"idInsumo":5,"nombre":"Levadura","cantidadRequerida":0.01}]
+=> Se requiere 1 kg de Harina por unidad, pero solo hay 0.5 kg disponibles.
+
+Comando 3: cliente hace pedido de 1 unidad de Pan francés
+curl -s -X POST http://localhost:3003/pedidos -H "Authorization: Bearer $CLIENTE" -H 'Content-Type: application/json' -d '{"items":[{"idProducto":1,"cantidad":1}]}'
+Respuesta: 201 Created — {"idPedido":97, ..., "items":[{"idProducto":1,"nombre":"Pan francés","cantidad":1,"subtotal":1.5}]}
+=> El pedido se acepta sin advertencia pese a que no hay materia prima suficiente.
+
+Comando 4: insumos tras el pedido
+curl -s http://localhost:3003/inventario/insumos -H "Authorization: Bearer $ADMIN"
+Respuesta relevante: {"idInsumo":1,"nombre":"Harina","cantidadDisponible":0, ...}
+=> La Harina requerida era 1kg, disponible 0.5kg; el resultado matematico (0.5 - 1 = -0.5) se recorta a 0 en vez de reflejar el faltante real ni bloquear/advertir el pedido.
+
+Causa raiz: db/01_schema.sql:317-337 (trg_fn_descontar_inventario) usa
+  "cantidadDisponible" = GREATEST(0, i."cantidadDisponible" - (pi."cantidadRequerida" * NEW."cantidad"))
+El GREATEST(0, ...) evita valores negativos pero no valida que haya stock suficiente antes de aceptar el pedido (RF-10) ni informa al operador de produccion cuanto faltante real existe; ademas ningun endpoint de pedidos.routes.js valida disponibilidad de insumos antes de llamar a sp_agregar_detalle_pedido.
+Impacto: se pueden aceptar pedidos que no se pueden producir con el inventario actual; el faltante real queda oculto (se ve "0" en vez del deficit), lo que puede llevar a comprometer entregas sin que el sistema lo detecte como error, solo como alerta generica de "por debajo del minimo" (RF-11), no como bloqueo (RF-10 implica descuento automatico exacto, no descuento parcial silencioso).

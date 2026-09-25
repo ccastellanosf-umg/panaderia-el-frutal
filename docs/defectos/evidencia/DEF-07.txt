@@ -1,0 +1,22 @@
+DEF-07 — PUT /productos/:id con nombre > 100 caracteres responde 404 "Producto no encontrado" (mensaje/codigo enganosos; falta validacion de longitud)
+Fecha de prueba: 2026-09-25
+
+Precondicion: producto existente idProducto=29 (creado en esta sesion de pruebas), sesion admin activa.
+
+Comando 1 (control, funciona bien):
+curl -s -X PUT http://localhost:3002/productos/29 -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' -d '{"nombre":"QA precio decimales v2","precio":5}'
+Respuesta: 200 {"idProducto":29,"nombre":"QA precio decimales v2", ...}
+
+Comando 2 (nombre de 300 caracteres 'A'):
+LONG=$(python3 -c "print('A'*300)")
+curl -s -X PUT http://localhost:3002/productos/29 -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' -d "{\"nombre\":\"$LONG\",\"precio\":5}"
+Respuesta: 404 {"error":"Producto no encontrado."}
+=> El producto SI existe (ver comando 1); el codigo/mensaje son enganosos.
+
+Evidencia en docker logs elfrutal_catalogo (grep P2000):
+  code: 'P2000'   (Prisma: "the provided value for the column is too long for the column's type")
+
+Columna real en base de datos: db/01_schema.sql:61 -> "nombre" VARCHAR(100) NOT NULL (limite de 100 caracteres).
+
+Causa raiz: src/catalogo/routes/catalogo.routes.js:79-100 (PUT /productos/:id) no valida la longitud de "nombre" antes de escribir en la base (a diferencia de la validacion de precio, que si existe); el bloque catch (linea 97-98) mapea CUALQUIER error de Prisma —incluyendo truncamiento de datos (P2000)— a 404 "Producto no encontrado", ocultando la causa real del fallo (dato invalido, no un ID inexistente).
+Impacto: el panel de administracion recibiria un mensaje incorrecto ("producto no encontrado") al intentar renombrar un producto con un nombre largo, lo cual induce a error al operador y dificulta el diagnostico; ademas confirma la ausencia de validacion de longitud de nombre en la capa de aplicacion (RF-01).

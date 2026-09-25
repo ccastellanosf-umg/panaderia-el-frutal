@@ -46,7 +46,9 @@ panaderia-el-frutal/
 ├── tests/                # Pruebas unitarias e de integración (Jest)
 ├── docker-compose.yml
 ├── azure-pipelines.yml
-├── panaderia_el_frutal_script.sql
+├── db/
+│   ├── 01_schema.sql     # antes panaderia_el_frutal_script.sql
+│   └── 02_seed.sql       # datos semilla (usuarios, catálogo, insumos)
 ├── .gitignore
 ├── .env.example
 └── README.md
@@ -69,11 +71,32 @@ panaderia-el-frutal/
    ```bash
    curl http://localhost:3001/health   # auth
    curl http://localhost:3002/health   # catalogo
-   curl http://localhost:3003/health   # pedidos (scaffolding)
-   curl http://localhost:3004/health   # pagos (scaffolding)
+   curl http://localhost:3003/health   # pedidos
+   curl http://localhost:3004/health   # pagos
    ```
 
-4. La base de datos se inicializa automáticamente con `panaderia_el_frutal_script.sql` (tablas, funciones, disparadores, procedimientos y vistas) la primera vez que se crea el contenedor `db`.
+4. La base de datos se inicializa automáticamente con `db/01_schema.sql` (tablas, funciones,
+   disparadores, procedimientos y vistas) y `db/02_seed.sql` (usuarios, catálogo, insumos,
+   planes e historial de ventas) la primera vez que se crea el contenedor `db`. Credenciales
+   semilla: `admin@elfrutal.com` / `Admin1234`, `ventas@elfrutal.com` / `Ventas1234`,
+   `produccion@elfrutal.com` / `Produccion1234`, `cliente@elfrutal.com` / `Cliente1234`.
+
+5. Pruebas end-to-end contra el stack ya levantado:
+   ```bash
+   npm run test:e2e
+   ```
+   Ver `tests/e2e/README.md` para el mapeo de casos de prueba (CP-01..CP-30) a endpoints.
+
+6. Levantar el frontend (React + Vite) en modo desarrollo, con el stack de microservicios
+   ya corriendo:
+   ```bash
+   cd src/frontend && npm install && npm run dev
+   ```
+   Por defecto consume `http://localhost:3001..3004`; para apuntar a otras URLs, copiar
+   `src/frontend/.env.example` como `.env` y ajustar `VITE_AUTH_URL`, `VITE_CATALOGO_URL`,
+   `VITE_PEDIDOS_URL` y `VITE_PAGOS_URL`. Credenciales semilla para iniciar sesión:
+   `admin@elfrutal.com` / `Admin1234`, `ventas@elfrutal.com` / `Ventas1234`,
+   `produccion@elfrutal.com` / `Produccion1234`, `cliente@elfrutal.com` / `Cliente1234`.
 
 ## Control de versiones
 

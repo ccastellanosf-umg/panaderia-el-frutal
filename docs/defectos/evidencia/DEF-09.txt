@@ -1,0 +1,18 @@
+DEF-09 — Un cuerpo JSON malformado responde con una pagina HTML de Express en vez de un error JSON consistente
+Fecha de prueba: 2026-09-25
+
+Comando 1 (pedidos):
+curl -s -D - -X POST http://localhost:3003/pedidos -H "Authorization: Bearer $CLIENTE" -H 'Content-Type: application/json' -d '{"items":['
+Respuesta: HTTP/1.1 400 Bad Request, Content-Type: text/html; charset=utf-8
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Error</title></head><body><pre>Bad Request</pre></body></html>
+
+Comando 2 (catalogo):
+curl -s -D - -X POST http://localhost:3002/productos -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' -d '{"nombre":'
+Respuesta: HTTP/1.1 400 Bad Request, Content-Type: text/html; charset=utf-8 (mismo cuerpo HTML)
+
+Comparacion — todas las demas respuestas de error de la API son JSON, p. ej.:
+curl -s -X POST http://localhost:3001/auth/login -d '{}' -H 'Content-Type: application/json'
+{"error":"Correo y contraseña son obligatorios."}  (Content-Type: application/json)
+
+Causa raiz: ninguno de los app.js de los microservicios (src/auth/app.js, src/catalogo/app.js, src/pedidos/app.js, src/pagos/app.js) registra un middleware de manejo de errores para `express.json()`; cuando el body-parser no puede parsear el JSON, Express usa su manejador de errores por defecto, que devuelve HTML, en lugar de un JSON `{ "error": "..." }` como el resto de la API.
+Impacto: cualquier cliente (incluido el frontend React) que espere siempre `application/json` en las respuestas de error recibira HTML sin poder parsearlo como JSON ante un body malformado, rompiendo el manejo de errores de la UI (mensaje generico o crash del parser JSON del cliente). Defecto de contrato/consistencia de API, de severidad menor.

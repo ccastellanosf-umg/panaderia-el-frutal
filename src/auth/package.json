@@ -11,12 +11,21 @@
   "dependencies": {
     "@prisma/client": "^5.19.0",
     "bcrypt": "^5.1.1",
+    "cors": "^2.8.6",
     "express": "^4.19.2",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "redis": "^4.7.1"
   },
   "devDependencies": {
     "jest": "^29.7.0",
     "prisma": "^5.19.0",
     "supertest": "^7.0.0"
+  },
+  "allowScripts": {
+    "@prisma/client@5.22.0": true,
+    "@prisma/engines@5.22.0": true,
+    "bcrypt@5.1.1": true,
+    "fsevents@2.3.3": true,
+    "prisma@5.22.0": true
   }
 }

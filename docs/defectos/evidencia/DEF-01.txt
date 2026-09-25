@@ -1,0 +1,30 @@
+DEF-01 — POST /productos con precio:"Infinity" tumba el microservicio catalogo completo (crash / denegacion de servicio)
+Fecha de prueba: 2026-09-25
+
+Precondicion: sesion admin activa. Servicio catalogo saludable antes de la prueba (docker ps: elfrutal_catalogo Up, healthy).
+
+Comando:
+curl -s -X POST http://localhost:3002/productos -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' \
+  -d '{"nombre":"QA precio infinito","precio":"Infinity"}'
+
+Respuesta observada: conexion cerrada sin respuesta (curl exit code 52, "Empty reply from server"), HTTP status 000.
+
+Evidencia del contenedor (docker logs elfrutal_catalogo --tail 40):
+  PrismaClientValidationError:
+  Invalid `prisma.producto.create()` invocation:
+  { data: { nombre: "QA precio infinito", ... + precio: Decimal } }
+  Argument `precio` is missing.
+      at wn (/app/node_modules/@prisma/client/runtime/library.js:29:1363)
+      ...
+      at async /app/routes/catalogo.routes.js:71:20
+  Node.js v20.20.2
+  Microservicio de catálogo escuchando en el puerto 3002    <-- el proceso murio y Docker lo reinicio automaticamente
+
+Estado tras el crash:
+docker ps --format '{{.Names}}: {{.Status}}'
+elfrutal_catalogo: Up 18 seconds (healthy)   <-- confirma que el contenedor se reinicio
+
+Causa raiz: src/catalogo/routes/catalogo.routes.js:60-76 (handler POST /productos).
+1) La validacion de precio (linea 66-69) usa `Number(precio)`; `Number("Infinity")` = `Infinity`, que no es NaN y es >= 0, por lo que pasa la validacion.
+2) `prisma.producto.create({ data: { ..., precio: Infinity, ... } })` (linea 71-73) no esta envuelto en try/catch (a diferencia de PUT /:id y PATCH /:id/disponibilidad, que si lo tienen). Prisma lanza una PrismaClientValidationError sincronica/asincronica al serializar el Decimal invalido; al no existir manejo de errores en esta ruta, la excepcion se propaga como una promesa rechazada no controlada y Node.js (v20, que termina el proceso ante unhandledRejection) mata el proceso completo.
+Impacto: cualquier usuario con rol administrador (o un front-end con un bug que envie un valor no finito) puede tumbar el microservicio de catalogo completo, interrumpiendo el catalogo publico (RF-03) para TODOS los usuarios (clientes incluidos) hasta que el orquestador (Docker) lo reinicie. Es una denegacion de servicio trivialmente reproducible.

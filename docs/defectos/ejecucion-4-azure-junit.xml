@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="43" failures="4" errors="0" time="28.934">
+  <testsuite name="Registro e inicio de sesión" errors="0" failures="4" skipped="0" timestamp="2026-09-25T14:28:12" time="28.914" tests="43">
+    <testcase classname="Registro e inicio de sesión CP-01 registra un cliente nuevo y responde 201" name="Registro e inicio de sesión CP-01 registra un cliente nuevo y responde 201" time="0.35" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Registro e inicio de sesión CP-02 correo duplicado responde 400 con &apos;Correo en uso&apos;" name="Registro e inicio de sesión CP-02 correo duplicado responde 400 con &apos;Correo en uso&apos;" time="0.43" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Registro e inicio de sesión CP-03 contraseña de 7 caracteres responde 400" name="Registro e inicio de sesión CP-03 contraseña de 7 caracteres responde 400" time="0.1" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Registro e inicio de sesión CP-04 contraseña de exactamente 8 caracteres es aceptada" name="Registro e inicio de sesión CP-04 contraseña de exactamente 8 caracteres es aceptada" time="0.326" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Registro e inicio de sesión CP-05 login válido responde 200 con token de 8h" name="Registro e inicio de sesión CP-05 login válido responde 200 con token de 8h" time="1.001" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Registro e inicio de sesión CP-06 credenciales inválidas responden 401" name="Registro e inicio de sesión CP-06 credenciales inválidas responden 401" time="0.102" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Registro e inicio de sesión DEF-09 correo sin arroba responde 400" name="Registro e inicio de sesión DEF-09 correo sin arroba responde 400" time="0.097" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Catálogo de productos CP-07 cliente autenticado no puede crear productos (403)" name="Catálogo de productos CP-07 cliente autenticado no puede crear productos (403)" time="0.491" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Catálogo de productos CP-08 administrador crea producto y responde 201" name="Catálogo de productos CP-08 administrador crea producto y responde 201" time="0.468" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Catálogo de productos CP-09 precio 15.50 es aceptado" name="Catálogo de productos CP-09 precio 15.50 es aceptado" time="0.112" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Catálogo de productos CP-10 precio 0 es aceptado" name="Catálogo de productos CP-10 precio 0 es aceptado" time="0.107" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Catálogo de productos CP-11 precio -0.01 responde 400" name="Catálogo de productos CP-11 precio -0.01 responde 400" time="0.105" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Catálogo de productos CP-12 ocultar producto lo saca del listado público" name="Catálogo de productos CP-12 ocultar producto lo saca del listado público" time="0.366" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Catálogo de productos CP-13 el listado público solo incluye disponibles" name="Catálogo de productos CP-13 el listado público solo incluye disponibles" time="0.106" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Pedidos CP-15 pedido sin ítems responde 400 &apos;Pedido vacío&apos;" name="Pedidos CP-15 pedido sin ítems responde 400 &apos;Pedido vacío&apos;" time="0.479" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Pedidos CP-14 crea el pedido y responde 201 con estado &apos;recibido&apos;" name="Pedidos CP-14 crea el pedido y responde 201 con estado &apos;recibido&apos;" time="0.536" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Pedidos CP-16 recibido -&gt; en_preparacion responde 200" name="Pedidos CP-16 recibido -&gt; en_preparacion responde 200" time="0.269" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Pedidos CP-17 recibido -&gt; entregado es rechazado (409)" name="Pedidos CP-17 recibido -&gt; entregado es rechazado (409)" time="0.224" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Pedidos CP-18 entregado -&gt; en_preparacion es rechazado (409)" name="Pedidos CP-18 entregado -&gt; en_preparacion es rechazado (409)" time="0.798" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Pedidos CP-19 el cambio de estado registra una notificación" name="Pedidos CP-19 el cambio de estado registra una notificación" time="1.273" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Pedidos CP-20 cancelar desde &apos;recibido&apos; responde 200" name="Pedidos CP-20 cancelar desde &apos;recibido&apos; responde 200" time="0.232" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Pedidos CP-21 cancelar desde &apos;en_preparacion&apos; es rechazado (409)" name="Pedidos CP-21 cancelar desde &apos;en_preparacion&apos; es rechazado (409)" time="0.35" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Inventario CP-22 descuenta insumos según receta (100 -&gt; 95)" name="Inventario CP-22 descuenta insumos según receta (100 -&gt; 95)" time="1.993" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Inventario CP-23 alerta de inventario crítico aparece tras el consumo (10.5 -&gt; 9.5)" name="Inventario CP-23 alerta de inventario crítico aparece tras el consumo (10.5 -&gt; 9.5)" time="1.181" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Suscripciones y pagos CP-24 crea la suscripción y responde 201 con estado &apos;activa&apos;" name="Suscripciones y pagos CP-24 crea la suscripción y responde 201 con estado &apos;activa&apos;" time="1.477" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Suscripciones y pagos CP-25 cobro aprobado avanza fechaCobro" name="Suscripciones y pagos CP-25 cobro aprobado avanza fechaCobro" time="1.206" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Suscripciones y pagos CP-26 cobro rechazado pausa la suscripción" name="Suscripciones y pagos CP-26 cobro rechazado pausa la suscripción" time="0.905" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Suscripciones y pagos CP-27 cancelar 72h antes del cobro es aceptado" name="Suscripciones y pagos CP-27 cancelar 72h antes del cobro es aceptado" time="1.004" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Suscripciones y pagos CP-28 cancelar 12h antes del cobro es rechazado (409)" name="Suscripciones y pagos CP-28 cancelar 12h antes del cobro es rechazado (409)" time="1.09" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Reportes CP-29 el reporte de ventas excluye pedidos cancelados" name="Reportes CP-29 el reporte de ventas excluye pedidos cancelados" time="0.495" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Reportes CP-30 sugerencia de producción responde con cantidadSugerida entera" name="Reportes CP-30 sugerencia de producción responde con cantidadSugerida entera" time="0.465" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Casos adicionales — defectos DEF-01..DEF-10 CP-31 (DEF-01) precio &apos;Infinity&apos; responde 400 y catalogo permanece operativo" name="Casos adicionales — defectos DEF-01..DEF-10 CP-31 (DEF-01) precio &apos;Infinity&apos; responde 400 y catalogo permanece operativo" time="0.977" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Casos adicionales — defectos DEF-01..DEF-10 CP-32 (DEF-02) fecha inválida en /reportes/ventas responde 400 y pedidos permanece operativo" name="Casos adicionales — defectos DEF-01..DEF-10 CP-32 (DEF-02) fecha inválida en /reportes/ventas responde 400 y pedidos permanece operativo" time="0.312" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Casos adicionales — defectos DEF-01..DEF-10 CP-33 (DEF-03, abierto) un token revocado por logout es rechazado con 401 en catalogo/pedidos/pagos" name="Casos adicionales — defectos DEF-01..DEF-10 CP-33 (DEF-03, abierto) un token revocado por logout es rechazado con 401 en catalogo/pedidos/pagos" time="0.72" file="tests/e2e/casos-prueba.e2e.test.js">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 401
+Received: 200
+    at Object.toBe (/Users/cristiancastellanos/Documents/proyectos/Universidad/Seminario/panaderia-el-frutal/tests/e2e/casos-prueba.e2e.test.js:585:31)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)</failure>
+    </testcase>
+    <testcase classname="Casos adicionales — defectos DEF-01..DEF-10 CP-34 (DEF-04) cobrar una suscripción cancelada responde 409 y no inserta un pago nuevo" name="Casos adicionales — defectos DEF-01..DEF-10 CP-34 (DEF-04) cobrar una suscripción cancelada responde 409 y no inserta un pago nuevo" time="1.374" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Casos adicionales — defectos DEF-01..DEF-10 CP-35 (DEF-05, abierto) un pedido que excede el stock del insumo es rechazado (409) y el stock no cambia" name="Casos adicionales — defectos DEF-01..DEF-10 CP-35 (DEF-05, abierto) un pedido que excede el stock del insumo es rechazado (409) y el stock no cambia" time="1.072" file="tests/e2e/casos-prueba.e2e.test.js">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 409
+Received: 201
+    at Object.toBe (/Users/cristiancastellanos/Documents/proyectos/Universidad/Seminario/panaderia-el-frutal/tests/e2e/casos-prueba.e2e.test.js:642:22)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)</failure>
+    </testcase>
+    <testcase classname="Casos adicionales — defectos DEF-01..DEF-10 CP-36 (DEF-06) registrar un correo que difiere solo en mayúsculas de uno existente responde 400" name="Casos adicionales — defectos DEF-01..DEF-10 CP-36 (DEF-06) registrar un correo que difiere solo en mayúsculas de uno existente responde 400" time="0.486" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Casos adicionales — defectos DEF-01..DEF-10 CP-37 (DEF-07, abierto) nombre de más de 100 caracteres responde 400 de validación (no 404/500)" name="Casos adicionales — defectos DEF-01..DEF-10 CP-37 (DEF-07, abierto) nombre de más de 100 caracteres responde 400 de validación (no 404/500)" time="0.491" file="tests/e2e/casos-prueba.e2e.test.js">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 400
+Received: 404
+    at Object.toBe (/Users/cristiancastellanos/Documents/proyectos/Universidad/Seminario/panaderia-el-frutal/tests/e2e/casos-prueba.e2e.test.js:677:20)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)</failure>
+    </testcase>
+    <testcase classname="Casos adicionales — defectos DEF-01..DEF-10 CP-38 (DEF-08) precio null responde 400" name="Casos adicionales — defectos DEF-01..DEF-10 CP-38 (DEF-08) precio null responde 400" time="0.101" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Casos adicionales — defectos DEF-01..DEF-10 CP-39 (DEF-09) un cuerpo JSON malformado responde 400 con cuerpo JSON {error: ...}" name="Casos adicionales — defectos DEF-01..DEF-10 CP-39 (DEF-09) un cuerpo JSON malformado responde 400 con cuerpo JSON {error: ...}" time="0.103" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Casos adicionales — defectos DEF-01..DEF-10 CP-40 (DEF-10, abierto) fechaEntrega en el pasado responde 400" name="Casos adicionales — defectos DEF-01..DEF-10 CP-40 (DEF-10, abierto) fechaEntrega en el pasado responde 400" time="0.826" file="tests/e2e/casos-prueba.e2e.test.js">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 400
+Received: 201
+    at Object.toBe (/Users/cristiancastellanos/Documents/proyectos/Universidad/Seminario/panaderia-el-frutal/tests/e2e/casos-prueba.e2e.test.js:710:20)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)</failure>
+    </testcase>
+    <testcase classname="Producción diaria y reporte de inventario CP-41 el encargado de producción registra la producción diaria y queda listada" name="Producción diaria y reporte de inventario CP-41 el encargado de producción registra la producción diaria y queda listada" time="0.492" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+    <testcase classname="Producción diaria y reporte de inventario CP-42 el reporte de inventario incluye insumos, críticos y la merma del período" name="Producción diaria y reporte de inventario CP-42 el reporte de inventario incluye insumos, críticos y la merma del período" time="0.249" file="tests/e2e/casos-prueba.e2e.test.js">
+    </testcase>
+  </testsuite>
+</testsuites>

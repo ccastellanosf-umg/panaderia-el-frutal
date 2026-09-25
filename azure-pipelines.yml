@@ -2,12 +2,9 @@
 # azure-pipelines.yml
 # Transformación Digital de Panadería El Frutal — Grupo 3
 # ============================================================
-# Pipeline básico requerido para esta entrega: Build + Test sobre
-# los cuatro microservicios (auth, catalogo, pedidos, pagos).
-# La etapa Deploy se agrega como avance adicional sobre el mínimo
-# solicitado, y por ahora solo despliega los dos microservicios ya
-# implementados en el Sprint 1 (auth y catalogo); pedidos y pagos
-# son scaffolding y se desplegarán en los Sprints 2 y 3.
+# Pipeline básico requerido para esta entrega: Build + Test + Deploy
+# sobre los cuatro microservicios (auth, catalogo, pedidos, pagos),
+# todos completamente implementados en la Fase 1.
 #
 # Estrategia de ramas: GitHub Flow. Los Pull Requests disparan
 # únicamente Build y Test; Deploy solo se ejecuta al fusionar a main.
@@ -70,6 +67,36 @@ stages:
             condition: eq(variables['usaPrisma'], 'true')
             displayName: 'Generar cliente Prisma de $(serviceName)'
 
+      - job: BuildFrontend
+        displayName: 'Build del frontend (React + Vite)'
+        pool:
+          name: 'Default'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Instalar Node.js 20'
+
+          - script: npm ci
+            workingDirectory: '$(frontendDirectory)'
+            displayName: 'Instalar dependencias del frontend'
+
+          - script: npm test
+            workingDirectory: '$(frontendDirectory)'
+            displayName: 'Ejecutar pruebas del frontend (Vitest)'
+
+          - script: npm run build
+            workingDirectory: '$(frontendDirectory)'
+            displayName: 'Compilar el frontend'
+            env:
+              VITE_AUTH_URL: 'https://app-elfrutal-auth-cc.azurewebsites.net'
+              VITE_CATALOGO_URL: 'https://app-elfrutal-catalogo-cc.azurewebsites.net'
+              VITE_PEDIDOS_URL: 'https://app-elfrutal-pedidos-cc.azurewebsites.net'
+              VITE_PAGOS_URL: 'https://app-elfrutal-pagos-cc.azurewebsites.net'
+
+          - publish: '$(frontendDirectory)/build'
+            artifact: 'frontend-build'
+            displayName: 'Publicar artefacto frontend-build'
 
   # ------------------------------------------------------------
   # ETAPA 2: TEST — pruebas unitarias de los microservicios
@@ -86,19 +113,33 @@ stages:
           matrix:
             auth:
               serviceName: 'auth'
+              usaPrisma: 'true'
             catalogo:
               serviceName: 'catalogo'
+              usaPrisma: 'true'
+            pedidos:
+              serviceName: 'pedidos'
+              usaPrisma: 'false'
+            pagos:
+              serviceName: 'pagos'
+              usaPrisma: 'false'
         steps:
           - task: NodeTool@0
             inputs:
               versionSpec: '20.x'
 
-          - script: |
-              npm ci
-              npx prisma generate
-              npm --prefix ../.. ci
+          - script: npm ci
             workingDirectory: 'src/$(serviceName)'
-            displayName: 'Preparar $(serviceName)'
+            displayName: 'Instalar dependencias de $(serviceName)'
+
+          - script: npx prisma generate
+            workingDirectory: 'src/$(serviceName)'
+            condition: eq(variables['usaPrisma'], 'true')
+            displayName: 'Generar cliente Prisma de $(serviceName)'
+
+          - script: npm --prefix ../.. ci
+            workingDirectory: 'src/$(serviceName)'
+            displayName: 'Instalar dependencias compartidas de pruebas (supertest)'
 
           - script: npx jest $(serviceName).test.js --roots ../../tests --ci --forceExit
             workingDirectory: 'src/$(serviceName)'
@@ -110,7 +151,7 @@ stages:
   # ETAPA 3: DEPLOY (solo main; solo servicios del Sprint 1)
   # ------------------------------------------------------------
   - stage: Deploy
-    displayName: 'Despliegue a Azure (auth y catalogo)'
+    displayName: 'Despliegue a Azure (los cuatro microservicios)'
     dependsOn: Test
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
@@ -126,6 +167,12 @@ stages:
             catalogo:
               serviceName: 'catalogo'
               appServiceName: 'app-elfrutal-catalogo-cc'
+            pedidos:
+              serviceName: 'pedidos'
+              appServiceName: 'app-elfrutal-pedidos-cc'
+            pagos:
+              serviceName: 'pagos'
+              appServiceName: 'app-elfrutal-pagos-cc'
         steps:
           - task: AzureCLI@2
             displayName: 'Build y push de la imagen de $(serviceName) a ACR (linux/amd64)'
@@ -147,26 +194,19 @@ stages:
               resourceGroupName: '$(resourceGroupName)'
               imageName: '$(acrName).azurecr.io/elfrutal-$(serviceName):$(Build.BuildId)'
 
-      - job: PushScaffolding
-        displayName: 'Publicar imágenes de scaffolding (pedidos, pagos) sin desplegar'
+      - job: DeployFrontend
+        displayName: 'Despliegue del frontend en Azure Static Web Apps'
         pool:
           name: 'Default'
-        strategy:
-          matrix:
-            pedidos:
-              serviceName: 'pedidos'
-            pagos:
-              serviceName: 'pagos'
         steps:
-          - task: AzureCLI@2
-            displayName: 'Build y push de la imagen de $(serviceName) a ACR (linux/amd64, sin desplegar)'
+          - download: current
+            artifact: 'frontend-build'
+            displayName: 'Descargar artefacto frontend-build'
+
+          - task: AzureStaticWebApp@0
+            displayName: 'Desplegar frontend en $(staticWebAppName)'
             inputs:
-              azureSubscription: '$(azureSubscription)'
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              inlineScript: |
-                set -e
-                export DOCKER_BUILDKIT=1
-                az acr login --name $(acrName)
-                docker buildx build --platform linux/amd64 -f docker/$(serviceName)/Dockerfile -t $(acrName).azurecr.io/elfrutal-$(serviceName):$(Build.BuildId) -t $(acrName).azurecr.io/elfrutal-$(serviceName):latest --push .
+              app_location: '$(Pipeline.Workspace)/frontend-build'
+              skip_app_build: true
+              azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)
 

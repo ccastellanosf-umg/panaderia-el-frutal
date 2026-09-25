@@ -21,11 +21,15 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
 COPY --from=builder --chown=appuser:appgroup /app/prisma ./prisma
 COPY --from=builder --chown=appuser:appgroup /app/package*.json ./
+COPY --from=builder --chown=appuser:appgroup /app/app.js ./
 COPY --from=builder --chown=appuser:appgroup /app/index.js ./
 COPY --from=builder --chown=appuser:appgroup /app/routes ./routes
 COPY --from=builder --chown=appuser:appgroup /app/middlewares ./middlewares
+COPY --from=builder --chown=appuser:appgroup /app/lib ./lib
 
 USER appuser
 
 EXPOSE 3002
-CMD ["sh", "-c", "npx prisma migrate deploy && node index.js"]
+# El esquema lo crea db/01_schema.sql vía docker-entrypoint-initdb.d;
+# Prisma se usa solo como cliente (nunca ejecuta migraciones aquí).
+CMD ["node", "index.js"]

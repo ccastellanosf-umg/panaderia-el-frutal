@@ -19,8 +19,18 @@ model Usuario {
   rol            String   @db.VarChar(20)
   fechaRegistro  DateTime @default(now()) @map("fechaRegistro") @db.Date
   cliente        Cliente?
+  personal       Personal?
 
   @@map("usuarios")
+}
+
+model Personal {
+  idPersonal Int     @id @default(autoincrement()) @map("idPersonal")
+  idUsuario  Int     @unique @map("idUsuario")
+  area       String  @db.VarChar(50)
+  usuario    Usuario @relation(fields: [idUsuario], references: [idUsuario])
+
+  @@map("personal")
 }
 
 model Cliente {
