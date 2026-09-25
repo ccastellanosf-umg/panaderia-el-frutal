@@ -55,6 +55,12 @@ const CASOS_DOCUMENTO = [
   ["CP-30", "RF-19", "Partición de Equivalencia", "Historial de ventas de 30 días.", "Fórmula de sugerencia activa.", "Solicitar sugerencia de horneado.", "Retorna sugerencias estimadas por producto.", "Baja"],
 ];
 
+// Casos agregados para cubrir de forma directa RF-12 y RF-18.
+const CASOS_COBERTURA = [
+  ["CP-41", "RF-12", "Partición de Equivalencia", "Operador de producción autenticado.", "idProducto 1, fecha de hoy, cantidadProducida 40.", "Registrar la producción diaria (POST /inventario/produccion) y consultar el listado del día.", "Código HTTP 201 y el registro aparece en el listado de producción del día.", "Media"],
+  ["CP-42", "RF-18", "Partición de Equivalencia", "Administrador autenticado; producción registrada en el período.", "Rango desde = hasta = fecha de hoy.", "Solicitar el reporte de inventario (GET /reportes/inventario).", "Código HTTP 200 con insumos, insumos críticos y mermas (merma = producido − vendido).", "Media"],
+];
+
 // CP-31..CP-40: tabla "CP-31..CP-40" de tests/e2e/README.md.
 function casosDeDefectos(defectos) {
   const filas = leer("tests/e2e/README.md")
@@ -117,9 +123,10 @@ const csv = (filas) =>
 const html = (texto) => texto.replace(/`/g, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\n/g, "<br>");
 
 const defectos = leerDefectos();
-const casos = [...CASOS_DOCUMENTO, ...casosDeDefectos(defectos)];
+const casos = [...CASOS_DOCUMENTO, ...casosDeDefectos(defectos), ...CASOS_COBERTURA];
 const ejec1 = resultados("docs/defectos/ejecucion-1-junit.xml");
 const ejec2 = resultados("docs/defectos/ejecucion-2-junit.xml");
+const ejec4 = resultados("docs/defectos/ejecucion-4-azure-junit.xml");
 fs.mkdirSync(salida, { recursive: true });
 
 // 1. Casos de prueba (Test Plans / Boards: un caso con 2 pasos).
@@ -148,14 +155,15 @@ for (const d of defectos) {
 fs.writeFileSync(path.join(salida, "bugs.csv"), csv(filasBugs));
 
 // 3. Resultados de las dos ejecuciones (para registrar en Test Plans).
-const filasRes = [["Caso", "Requerimiento", "Técnica", "Ejecución 1", "Ejecución 2", "Defecto"]];
+const filasRes = [["Caso", "Requerimiento", "Técnica", "Ejecución 1", "Ejecución 2", "Ejecución 4 (Azure)", "Defecto"]];
 for (const [cp, rf, tecnica] of casos) {
   const n = Number(cp.slice(3));
-  filasRes.push([cp, rf, tecnica, ejec1[cp] || "", ejec2[cp] || "", n > 30 ? `DEF-${String(n - 30).padStart(2, "0")}` : ""]);
+  filasRes.push([cp, rf, tecnica, ejec1[cp] || "No existía", ejec2[cp] || "No existía", ejec4[cp] || "", n > 30 && n <= 40 ? `DEF-${String(n - 30).padStart(2, "0")}` : ""]);
 }
 fs.writeFileSync(path.join(salida, "resultados-ejecuciones.csv"), csv(filasRes));
 
 const cuenta = (m, v) => Object.values(m).filter((x) => x === v).length;
 console.log(`casos: ${casos.length}, bugs: ${defectos.length}`);
 console.log(`ejecución 1: ${cuenta(ejec1, "Aprobado")} aprobados, ${cuenta(ejec1, "Fallido")} fallidos`);
+console.log(`ejecución 4: ${cuenta(ejec4, "Aprobado")} aprobados, ${cuenta(ejec4, "Fallido")} fallidos`);
 console.log(`ejecución 2: ${cuenta(ejec2, "Aprobado")} aprobados, ${cuenta(ejec2, "Fallido")} fallidos`);

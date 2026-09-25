@@ -79,3 +79,7 @@
 "","","","2","POST /pedidos con cuerpo '{""items"":[' (JSON incompleto) Datos: POST /pedidos con cuerpo '{""items"":[' (JSON incompleto)","400 con cuerpo JSON {""error"": ""...""} (nunca HTML)","",""
 "","Test Case","CP-40 POST /pedidos con fechaEntrega:""2020-01-01""","1","Precondición: ","","3","CP-40; RF-04; Análisis de valores límite (fechaEntrega pasada vs. hoy)"
 "","","","2","POST /pedidos con fechaEntrega:""2020-01-01"" Datos: POST /pedidos con fechaEntrega:""2020-01-01""","400","",""
+"","Test Case","CP-41 Registrar la producción diaria (POST /inventario/produccion) y consultar el listado del día.","1","Precondición: Operador de producción autenticado.","","2","CP-41; RF-12; Partición de Equivalencia"
+"","","","2","Registrar la producción diaria (POST /inventario/produccion) y consultar el listado del día. Datos: idProducto 1, fecha de hoy, cantidadProducida 40.","Código HTTP 201 y el registro aparece en el listado de producción del día.","",""
+"","Test Case","CP-42 Solicitar el reporte de inventario (GET /reportes/inventario).","1","Precondición: Administrador autenticado; producción registrada en el período.","","2","CP-42; RF-18; Partición de Equivalencia"
+"","","","2","Solicitar el reporte de inventario (GET /reportes/inventario). Datos: Rango desde = hasta = fecha de hoy.","Código HTTP 200 con insumos, insumos críticos y mermas (merma = producido − vendido).","",""

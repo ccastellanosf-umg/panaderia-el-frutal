@@ -710,3 +710,42 @@ describe("Casos adicionales — defectos DEF-01..DEF-10", () => {
     expect(status).toBe(400);
   });
 });
+
+// ------------------------------------------------------------
+// CP-41..CP-42 — cobertura directa de RF-12 y RF-18, que en el
+// diseño original solo tenían cobertura indirecta.
+// ------------------------------------------------------------
+describe("Producción diaria y reporte de inventario", () => {
+  const fecha = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local
+
+  it("CP-41 el encargado de producción registra la producción diaria y queda listada", async () => {
+    const registro = await api("POST", `${PEDIDOS_URL}/inventario/produccion`, {
+      token: produccion.token,
+      body: { idProducto: 1, fecha, cantidadProducida: 40 },
+    });
+    expect(registro.status).toBe(201);
+    expect(registro.body.cantidadProducida).toBe(40);
+
+    const listado = await api(
+      "GET",
+      `${PEDIDOS_URL}/inventario/produccion?desde=${fecha}&hasta=${fecha}`,
+      { token: produccion.token }
+    );
+    expect(listado.status).toBe(200);
+    expect(listado.body.some((p) => p.idProduccion === registro.body.idProduccion)).toBe(true);
+  });
+
+  it("CP-42 el reporte de inventario incluye insumos, críticos y la merma del período", async () => {
+    const { status, body } = await api(
+      "GET",
+      `${PEDIDOS_URL}/reportes/inventario?desde=${fecha}&hasta=${fecha}`,
+      { token: admin.token }
+    );
+    expect(status).toBe(200);
+    expect(body.insumos.length).toBeGreaterThan(0);
+    expect(Array.isArray(body.criticos)).toBe(true);
+    const merma = body.mermas.find((m) => m.idProducto === 1);
+    expect(merma.producido).toBeGreaterThanOrEqual(40);
+    expect(merma.merma).toBe(merma.producido - merma.vendido);
+  });
+});

@@ -171,4 +171,54 @@ async function main() {
   console.log(`${ORG}/${encodeURIComponent(PROYECTO)}/_testPlans/define?planId=${plan.id}`);
 }
 
-main().catch((e) => { console.error(e.message); process.exit(1); });
+// Incremental mode: adds the test cases missing from an existing plan
+// and records one more run from a JUnit report.
+//   PLAN_ID=63 EJECUCION="Ejecución 4 — ..." JUNIT=docs/defectos/... node cargar-azure-devops.js
+async function agregarEjecucion(planId, nombre, junit) {
+  const plan = await api("GET", `testplan/plans/${planId}?api-version=7.1`);
+  const suite = plan.rootSuite.id;
+  const enSuite = await api("GET", `testplan/Plans/${planId}/Suites/${suite}/TestCase?api-version=7.1`);
+  const idPorCp = {};
+  for (const tc of enSuite.value) {
+    const cp = (tc.workItem.name.match(/CP-\d{2}/) || [])[0];
+    if (cp) idPorCp[cp] = tc.workItem.id;
+  }
+  const nuevos = [];
+  for (const c of casosDesdeCsv().filter((c) => !idPorCp[c.cp])) {
+    const wi = await api("POST", "wit/workitems/$Test%20Case?api-version=7.1", parche({
+      "System.Title": c.titulo,
+      "Microsoft.VSTS.TCM.Steps": pasosXml(c.pasos),
+      "Microsoft.VSTS.Common.Priority": c.prioridad,
+      "System.Tags": c.tags,
+    }), "application/json-patch+json");
+    idPorCp[c.cp] = wi.id;
+    nuevos.push({ workItem: { id: wi.id } });
+    console.log(`${c.cp} -> test case ${wi.id}`);
+  }
+  if (nuevos.length) {
+    await api("POST", `testplan/Plans/${planId}/Suites/${suite}/TestCase?api-version=7.1`, nuevos);
+  }
+
+  const resultado = resultadosJunit(junit);
+  const puntos = await api("GET", `testplan/Plans/${planId}/Suites/${suite}/TestPoint?api-version=7.1`);
+  const run = await api("POST", "test/runs?api-version=7.1", {
+    name: nombre, plan: { id: String(planId) }, pointIds: puntos.value.map((p) => p.id), automated: false,
+  });
+  const filas = await api("GET", `test/Runs/${run.id}/results?api-version=7.1&$top=200`);
+  await api("PATCH", `test/Runs/${run.id}/results?api-version=7.1`, filas.value.map((r) => {
+    const cp = Object.keys(idPorCp).find((k) => String(idPorCp[k]) === r.testCase.id);
+    return { id: r.id, outcome: resultado[cp], state: "Completed" };
+  }));
+  await api("POST", `test/Runs/${run.id}/attachments?api-version=7.1`, {
+    stream: fs.readFileSync(path.join(raiz, junit)).toString("base64"),
+    fileName: path.basename(junit), attachmentType: "GeneralAttachment", comment: "Reporte JUnit de la suite E2E",
+  });
+  await api("PATCH", `test/runs/${run.id}?api-version=7.1`, { state: "Completed" });
+  const fallidos = Object.values(resultado).filter((o) => o === "Failed").length;
+  console.log(`${nombre}: run ${run.id}, ${Object.keys(resultado).length - fallidos} passed, ${fallidos} failed`);
+}
+
+const tarea = process.env.PLAN_ID
+  ? agregarEjecucion(process.env.PLAN_ID, process.env.EJECUCION, process.env.JUNIT)
+  : main();
+tarea.catch((e) => { console.error(e.message); process.exit(1); });
