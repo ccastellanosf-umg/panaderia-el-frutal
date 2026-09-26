@@ -13,5 +13,16 @@ module.exports = {
       "jest-junit",
       { outputDirectory: "test-results", outputName: "e2e-junit.xml", addFileAttribute: "true" },
     ],
+    // Readable report for the deliverable: test-results/html/reporte-e2e.html
+    [
+      "jest-html-reporters",
+      {
+        publicPath: "test-results/html",
+        filename: "reporte-e2e.html",
+        pageTitle: "Panadería El Frutal — Suite E2E Fase 1",
+        expand: true,
+        inlineSource: true,
+      },
+    ],
   ],
 };
