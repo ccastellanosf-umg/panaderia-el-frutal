@@ -227,3 +227,12 @@ describe("Microservicio de autenticación", () => {
     });
   });
 });
+
+// DEMO ONLY (branch demo/jenkins-fallo, never merged): intentionally broken
+// test that shows how the Jenkins pipeline stops at a failing unit test.
+describe("DEMO - intentionally failing unit test", () => {
+  it("GET /health responds 500 (wrong on purpose: the real answer is 200)", async () => {
+    const res = await request(app).get("/health");
+    expect(res.statusCode).toBe(500);
+  });
+});
