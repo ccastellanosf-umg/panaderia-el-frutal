@@ -8,8 +8,11 @@ para cada uno de los defectos DEF-01..DEF-10 documentados en
 `docs/defectos/defectos.md`.
 
 ```bash
-npm run test:e2e
+npm run test:e2e          # contra el entorno local (docker compose)
+npm run test:e2e:azure    # contra Azure, con reporte HTML (requiere az login)
 ```
+
+Cada corrida genera `test-results/e2e-junit.xml` (JUnit) y `test-results/html/reporte-e2e.html` (reporte HTML con el detalle de cada caso). Solo envía peticiones HTTP: no despliega nada.
 
 ## Variables de entorno
 
