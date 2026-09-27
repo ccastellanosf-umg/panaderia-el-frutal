@@ -1,0 +1,93 @@
+# ============================================================
+# docker-compose.ci.yml
+# Override for Jenkins CI. Use together with docker-compose.yml:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.ci.yml ...
+#
+# Jenkins runs in a container talking to the HOST Docker daemon
+# (mounted socket, Docker Desktop on the Mac agent). Two things
+# break as a result, and this file exists to fix them:
+#
+#   1. Host-relative bind mounts (docker-compose.yml's
+#      `./db:/docker-entrypoint-initdb.d:ro`) resolve on the
+#      Docker Desktop VM, not the Jenkins workspace, and the path
+#      does not exist there. Build contexts are fine (the CLI
+#      uploads them), so `db` here is rebuilt from
+#      docker/db/Dockerfile, which COPYs the same init SQL into
+#      the image instead of bind-mounting it.
+#   2. Published ports land on the HOST, not on the Jenkins
+#      container, so `localhost:<port>` from Jenkins never
+#      reaches these services. All ports are dropped
+#      (`!reset []`); tests reach the services over the compose
+#      network using their service DNS names (auth, catalogo, ...).
+#
+# `!override`/`!reset` require Compose v2.24+ (this environment
+# runs Compose v5).
+#
+# Run with a project name (COMPOSE_PROJECT_NAME) distinct from any
+# developer's local stack or the staging stack, and never publish
+# ports here, so this CI stack cannot collide with either. Note
+# docker-compose.yml also sets a fixed `container_name` per
+# service (e.g. `elfrutal_db`) — container names are global,
+# independent of the compose project, so two stacks using the base
+# file would collide on the name alone even with different project
+# names / no published ports. `container_name` is reset here so
+# Compose falls back to its project-scoped default
+# (`<project>-<service>-1`).
+# ============================================================
+
+services:
+  db:
+    image: elfrutal-db-ci:latest
+    build:
+      context: .
+      dockerfile: docker/db/Dockerfile
+    container_name: !reset null
+    ports: !reset []
+    volumes: !override
+      - db_data:/var/lib/postgresql/data
+
+  redis:
+    container_name: !reset null
+    ports: !reset []
+
+  auth:
+    container_name: !reset null
+    ports: !reset []
+
+  catalogo:
+    container_name: !reset null
+    ports: !reset []
+
+  pedidos:
+    container_name: !reset null
+    ports: !reset []
+
+  pagos:
+    container_name: !reset null
+    ports: !reset []
+
+  # Not started by `up` without `--profile e2e` or naming it
+  # explicitly; scripts/ci/e2e.sh runs it with `compose run e2e`.
+  e2e:
+    build:
+      context: .
+      dockerfile: docker/e2e/Dockerfile
+    profiles: ["e2e"]
+    depends_on:
+      auth: { condition: service_healthy }
+      catalogo: { condition: service_healthy }
+      pedidos: { condition: service_healthy }
+      pagos: { condition: service_healthy }
+    environment:
+      AUTH_URL: http://auth:3001
+      CATALOGO_URL: http://catalogo:3002
+      PEDIDOS_URL: http://pedidos:3003
+      PAGOS_URL: http://pagos:3004
+      # Enables the DB-backed assertions in tests/e2e/casos-prueba.e2e.test.js
+      # (the itDb cases) — same credentials as the db/auth services.
+      DATABASE_URL: postgresql://${DB_USER:-elfrutal_admin}:${DB_PASSWORD}@db:5432/${DB_NAME:-panaderia_el_frutal}
+    # No bind mount for test-results: like the db init SQL, a
+    # host-relative bind mount would resolve on the Docker Desktop
+    # VM, not the Jenkins workspace. scripts/ci/e2e.sh instead
+    # copies /app/test-results out with `docker cp` after the run.

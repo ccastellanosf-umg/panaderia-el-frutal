@@ -1,0 +1,64 @@
+# ============================================================
+# docker-compose.staging.yml
+# Override for a persistent local staging stack, deployed by
+# Jenkins from the `main` branch (see scripts/ci/deploy-staging.sh
+# and the Jenkinsfile's "Deploy Staging" stage). Use together with
+# docker-compose.yml:
+#
+#   docker compose -p elfrutal-staging \
+#     -f docker-compose.yml -f docker-compose.staging.yml ...
+#
+# Notes:
+#   - `db` is built from docker/db/Dockerfile (same as CI) instead
+#     of the host-relative `./db` bind mount, for the same reason:
+#     Jenkins talks to the host Docker daemon, and that path does
+#     not exist on the Docker Desktop VM.
+#   - db/redis ports stay unpublished; only the four microservices
+#     are published, on host ports 4001-4004, so this stack never
+#     collides with a developer's local stack (3001-3004/5432/6379)
+#     or the CI stack (which publishes nothing).
+#   - The fixed project name `elfrutal-staging` keeps this stack
+#     stable across Jenkins builds (containers/volumes are reused
+#     and updated in place, not recreated with a new name each run).
+#   - docker-compose.yml sets a fixed `container_name` per service
+#     (e.g. `elfrutal_db`); container names are global, independent
+#     of the compose project, so this stack would collide on name
+#     alone with a developer's local stack using the base file
+#     unchanged. `container_name` is reset here so Compose falls
+#     back to its project-scoped default (`elfrutal-staging-db-1`).
+# ============================================================
+
+services:
+  db:
+    image: elfrutal-db-staging:latest
+    build:
+      context: .
+      dockerfile: docker/db/Dockerfile
+    container_name: !reset null
+    ports: !reset []
+    volumes: !override
+      - db_data:/var/lib/postgresql/data
+
+  redis:
+    container_name: !reset null
+    ports: !reset []
+
+  auth:
+    container_name: !reset null
+    ports:
+      - "4001:3001"
+
+  catalogo:
+    container_name: !reset null
+    ports:
+      - "4002:3002"
+
+  pedidos:
+    container_name: !reset null
+    ports:
+      - "4003:3003"
+
+  pagos:
+    container_name: !reset null
+    ports:
+      - "4004:3004"
