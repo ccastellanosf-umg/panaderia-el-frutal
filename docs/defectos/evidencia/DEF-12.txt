@@ -1,0 +1,10 @@
+DEF-12 — Evidencia (entorno local, http://localhost:5173) — 2026-10-02 09:28:15 CST
+Reproducción automatizada con Chrome (playwright-core), sesión de cliente:
+0. Sesión iniciada como cliente.
+1. Tras agregar 3 productos, la barra de navegación muestra: "Carrito (3)"
+2. Tras recargar la página (F5), la barra de navegación muestra: "Carrito"
+3. Claves en localStorage después de recargar: ["elfrutal_usuario","elfrutal_token"]
+
+Capturas: DEF-12-antes-de-recargar.png y DEF-12-despues-de-recargar.png
+La sesión se conserva tras recargar (el token sí se guarda), pero el carrito se pierde.
+Causa: src/frontend/src/context/CartContext.jsx:7 guarda los ítems solo en estado de React (useState), sin persistencia.
