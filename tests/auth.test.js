@@ -310,6 +310,17 @@ describe("Microservicio de autenticación", () => {
       expect(sexto.statusCode).toBe(429);
     });
 
+    it("detrás del proxy de Azure (IP:puerto en X-Forwarded-For) los intentos de la misma IP se acumulan", async () => {
+      const correo = "proxy@correo.com";
+      mockUsuario.findUnique.mockResolvedValue(await usuarioDe(correo));
+      for (let i = 0; i < 5; i++) {
+        const res = await intentar(correo, "Mala-clave1", `203.0.113.7:${50000 + i}`);
+        expect(res.statusCode).toBe(401);
+      }
+      const sexto = await intentar(correo, "Mala-clave1", "203.0.113.7:59999");
+      expect(sexto.statusCode).toBe(429);
+    });
+
     it("los inicios de sesión exitosos no cuentan", async () => {
       const correo = "exitoso@correo.com";
       mockUsuario.findUnique.mockResolvedValue(await usuarioDe(correo));
