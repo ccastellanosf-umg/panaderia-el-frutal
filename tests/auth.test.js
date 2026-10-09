@@ -6,6 +6,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
 const request = require("supertest");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { pruebasSeguridadComunes } = require("./helpers/seguridad");
 
 const mockUsuario = {
   findUnique: jest.fn(),
@@ -18,17 +19,25 @@ const mockCliente = {
 const mockPersonal = {
   findUnique: jest.fn(),
 };
+const mockTokenRevocado = {
+  findUnique: jest.fn(),
+  createMany: jest.fn().mockResolvedValue({ count: 1 }),
+  deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+};
 
 jest.mock("@prisma/client", () => ({
   PrismaClient: jest.fn().mockImplementation(() => ({
     usuario: mockUsuario,
     cliente: mockCliente,
     personal: mockPersonal,
+    tokenRevocado: mockTokenRevocado,
   })),
 }));
 
-jest.mock("../src/auth/lib/redis", () => ({
-  obtenerClienteConectado: jest.fn().mockResolvedValue(null),
+const mockEstaRevocado = jest.fn().mockResolvedValue(false);
+jest.mock("../src/auth/lib/tokensRevocados", () => ({
+  ...jest.requireActual("../src/auth/lib/tokensRevocados"),
+  estaRevocado: (...args) => mockEstaRevocado(...args),
 }));
 
 const app = require("../src/auth/app");
@@ -194,7 +203,7 @@ describe("Microservicio de autenticación", () => {
     });
 
     it("responde 200 con token válido", async () => {
-      const token = jwt.sign({ idUsuario: 1, rol: "cliente" }, process.env.JWT_SECRET, {
+      const token = jwt.sign({ idUsuario: 1, rol: "cliente", jti: "me-1" }, process.env.JWT_SECRET, {
         expiresIn: "8h",
       });
       const res = await request(app).get("/auth/me").set("Authorization", `Bearer ${token}`);
@@ -216,14 +225,135 @@ describe("Microservicio de autenticación", () => {
   });
 
   describe("POST /auth/logout", () => {
-    it("invalida el token sin fallar aunque Redis no esté disponible", async () => {
-      const token = jwt.sign(
-        { idUsuario: 1, rol: "cliente", jti: "abc-123" },
-        process.env.JWT_SECRET,
-        { expiresIn: "8h" }
-      );
+    const tokenConJti = (jti = "abc-123") =>
+      jwt.sign({ idUsuario: 1, rol: "cliente", jti }, process.env.JWT_SECRET, { expiresIn: "8h" });
+
+    it("DEF-03: guarda el jti en tokens_revocados y limpia los vencidos", async () => {
+      const token = tokenConJti();
+      const { exp } = jwt.decode(token);
       const res = await request(app).post("/auth/logout").set("Authorization", `Bearer ${token}`);
       expect(res.statusCode).toBe(200);
+      expect(mockTokenRevocado.createMany).toHaveBeenCalledWith({
+        data: [{ jti: "abc-123", expira: new Date(exp * 1000) }],
+        skipDuplicates: true,
+      });
+      expect(mockTokenRevocado.deleteMany).toHaveBeenCalledWith({
+        where: { expira: { lt: expect.any(Date) } },
+      });
+    });
+
+    it("si no puede guardar la revocación responde 503 (la sesión sigue abierta)", async () => {
+      mockTokenRevocado.createMany.mockRejectedValueOnce(new Error("db caída"));
+      const res = await request(app)
+        .post("/auth/logout")
+        .set("Authorization", `Bearer ${tokenConJti()}`);
+      expect(res.statusCode).toBe(503);
+      expect(res.body).toEqual({ error: "Servicio no disponible." });
+    });
+
+    it("un token ya revocado no puede volver a usarse en logout (401)", async () => {
+      mockEstaRevocado.mockResolvedValueOnce(true);
+      const res = await request(app)
+        .post("/auth/logout")
+        .set("Authorization", `Bearer ${tokenConJti("ya-revocado")}`);
+      expect(res.statusCode).toBe(401);
+    });
+  });
+
+  describe("POST /auth/login: límite de intentos fallidos", () => {
+    const hashPromesa = bcrypt.hash("Correcta1", 4);
+    const intentar = (correo, contrasena, ip) => {
+      const r = request(app).post("/auth/login").send({ correo, contrasena });
+      return ip ? r.set("X-Forwarded-For", ip) : r;
+    };
+    const usuarioDe = async (correo) => ({
+      idUsuario: 9,
+      nombre: "Demo",
+      correo,
+      rol: "cliente",
+      contrasenaHash: await hashPromesa,
+    });
+
+    it("el 6.º intento fallido de un correo responde 429 con RateLimit headers", async () => {
+      const correo = "bloqueado@correo.com";
+      mockUsuario.findUnique.mockResolvedValue(await usuarioDe(correo));
+      for (let i = 0; i < 5; i++) {
+        const res = await intentar(correo, "Mala-clave1");
+        expect(res.statusCode).toBe(401);
+      }
+      const sexto = await intentar(correo, "Mala-clave1");
+      expect(sexto.statusCode).toBe(429);
+      expect(sexto.body).toEqual({
+        error: "Demasiados intentos de inicio de sesión. Intente de nuevo en 15 minutos.",
+      });
+      expect(sexto.headers["ratelimit-limit"]).toBeDefined();
+      expect(sexto.headers["ratelimit-remaining"]).toBeDefined();
+      // ni siquiera con la contraseña correcta mientras dure el bloqueo
+      const correcta = await intentar(correo, "Correcta1");
+      expect(correcta.statusCode).toBe(429);
+    });
+
+    it("otro correo (misma IP) sigue pudiendo iniciar sesión", async () => {
+      const otro = "libre@correo.com";
+      mockUsuario.findUnique.mockResolvedValue(await usuarioDe(otro));
+      mockCliente.findUnique.mockResolvedValue({ idCliente: 1 });
+      mockPersonal.findUnique.mockResolvedValue(null);
+      const res = await intentar(otro, "Correcta1");
+      expect(res.statusCode).toBe(200);
+    });
+
+    it("el correo se compara sin distinguir mayúsculas", async () => {
+      const correo = "mayus@correo.com";
+      mockUsuario.findUnique.mockResolvedValue(await usuarioDe(correo));
+      for (let i = 0; i < 5; i++) await intentar(i % 2 ? "MAYUS@correo.com" : correo, "Mala-clave1");
+      const sexto = await intentar("Mayus@Correo.com", "Mala-clave1");
+      expect(sexto.statusCode).toBe(429);
+    });
+
+    it("detrás del proxy de Azure (IP:puerto en X-Forwarded-For) los intentos de la misma IP se acumulan", async () => {
+      const correo = "proxy@correo.com";
+      mockUsuario.findUnique.mockResolvedValue(await usuarioDe(correo));
+      for (let i = 0; i < 5; i++) {
+        const res = await intentar(correo, "Mala-clave1", `203.0.113.7:${50000 + i}`);
+        expect(res.statusCode).toBe(401);
+      }
+      const sexto = await intentar(correo, "Mala-clave1", "203.0.113.7:59999");
+      expect(sexto.statusCode).toBe(429);
+    });
+
+    it("los inicios de sesión exitosos no cuentan", async () => {
+      const correo = "exitoso@correo.com";
+      mockUsuario.findUnique.mockResolvedValue(await usuarioDe(correo));
+      mockCliente.findUnique.mockResolvedValue({ idCliente: 1 });
+      mockPersonal.findUnique.mockResolvedValue(null);
+      for (let i = 0; i < 8; i++) {
+        const res = await intentar(correo, "Correcta1");
+        expect(res.statusCode).toBe(200);
+      }
+    });
+  });
+
+  pruebasSeguridadComunes({
+    nombre: "auth",
+    app,
+    request,
+    jwt,
+    rol: "cliente",
+    estaRevocado: mockEstaRevocado,
+    peticionProtegida: (r, token) => r.get("/auth/me").set("Authorization", `Bearer ${token}`),
+  });
+
+  describe("lib/tokensRevocados", () => {
+    const { estaRevocado } = jest.requireActual("../src/auth/lib/tokensRevocados");
+
+    it("devuelve true cuando el jti figura en tokens_revocados", async () => {
+      mockTokenRevocado.findUnique.mockResolvedValueOnce({ jti: "abc" });
+      await expect(estaRevocado("abc")).resolves.toBe(true);
+    });
+
+    it("devuelve false cuando no figura", async () => {
+      mockTokenRevocado.findUnique.mockResolvedValueOnce(null);
+      await expect(estaRevocado("abc")).resolves.toBe(false);
     });
   });
 });

@@ -5,6 +5,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
 
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
+const { pruebasSeguridadComunes } = require("./helpers/seguridad");
 
 const mockQuery = jest.fn();
 const mockConTransaccion = jest.fn();
@@ -29,15 +30,20 @@ jest.mock("../src/pedidos/lib/notificaciones", () => ({
   notificarCliente: jest.fn().mockResolvedValue("enviada"),
 }));
 
+const mockEstaRevocado = jest.fn().mockResolvedValue(false);
+jest.mock("../src/pedidos/lib/tokensRevocados", () => ({
+  estaRevocado: (...args) => mockEstaRevocado(...args),
+}));
+
 const app = require("../src/pedidos/app");
 const { notificarPedido } = require("../src/pedidos/lib/notificaciones");
 
 const tokenCliente = (idCliente = 1) =>
-  jwt.sign({ idUsuario: 4, rol: "cliente", idCliente }, process.env.JWT_SECRET, { expiresIn: "8h" });
+  jwt.sign({ jti: "t-" + Math.random(), idUsuario: 4, rol: "cliente", idCliente }, process.env.JWT_SECRET, { expiresIn: "8h" });
 const tokenAdmin = () =>
-  jwt.sign({ idUsuario: 1, rol: "administrador" }, process.env.JWT_SECRET, { expiresIn: "8h" });
+  jwt.sign({ jti: "t-" + Math.random(), idUsuario: 1, rol: "administrador" }, process.env.JWT_SECRET, { expiresIn: "8h" });
 const tokenVentas = () =>
-  jwt.sign({ idUsuario: 2, rol: "operador", area: "ventas" }, process.env.JWT_SECRET, {
+  jwt.sign({ jti: "t-" + Math.random(), idUsuario: 2, rol: "operador", area: "ventas" }, process.env.JWT_SECRET, {
     expiresIn: "8h",
   });
 
@@ -292,6 +298,32 @@ describe("Microservicio de pedidos", () => {
         .set("Authorization", `Bearer ${tokenAdmin()}`);
       expect(res.statusCode).toBe(200);
       expect(Array.isArray(res.body.porProducto)).toBe(true);
+    });
+  });
+
+  pruebasSeguridadComunes({
+    nombre: "pedidos",
+    app,
+    request,
+    jwt,
+    rol: "cliente",
+    estaRevocado: mockEstaRevocado,
+    peticionProtegida: (r, token) => r.post("/pedidos").send({}).set("Authorization", `Bearer ${token}`),
+  });
+
+  describe("lib/tokensRevocados", () => {
+    const { estaRevocado } = jest.requireActual("../src/pedidos/lib/tokensRevocados");
+
+    it("devuelve true cuando el jti figura en tokens_revocados", async () => {
+      mockQuery.mockResolvedValueOnce({ rows: [{ "?column?": 1 }] });
+      await expect(estaRevocado("abc")).resolves.toBe(true);
+      expect(mockQuery.mock.calls[0][0]).toMatch(/tokens_revocados/);
+      expect(mockQuery.mock.calls[0][1]).toEqual(["abc"]);
+    });
+
+    it("devuelve false cuando no figura", async () => {
+      mockQuery.mockResolvedValueOnce({ rows: [] });
+      await expect(estaRevocado("abc")).resolves.toBe(false);
     });
   });
 });

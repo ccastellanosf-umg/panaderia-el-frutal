@@ -6,6 +6,7 @@ process.env.PASARELA_MODO = "simulada";
 
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
+const { pruebasSeguridadComunes } = require("./helpers/seguridad");
 
 const mockQuery = jest.fn();
 const mockConTransaccion = jest.fn();
@@ -17,12 +18,17 @@ jest.mock("../src/pagos/lib/db", () => ({
   mapearErrorDb: (...args) => mockMapearErrorDb(...args),
 }));
 
+const mockEstaRevocado = jest.fn().mockResolvedValue(false);
+jest.mock("../src/pagos/lib/tokensRevocados", () => ({
+  estaRevocado: (...args) => mockEstaRevocado(...args),
+}));
+
 const app = require("../src/pagos/app");
 
 const tokenCliente = (idCliente = 1) =>
-  jwt.sign({ idUsuario: 4, rol: "cliente", idCliente }, process.env.JWT_SECRET, { expiresIn: "8h" });
+  jwt.sign({ jti: "t-" + Math.random(), idUsuario: 4, rol: "cliente", idCliente }, process.env.JWT_SECRET, { expiresIn: "8h" });
 const tokenAdmin = () =>
-  jwt.sign({ idUsuario: 1, rol: "administrador" }, process.env.JWT_SECRET, { expiresIn: "8h" });
+  jwt.sign({ jti: "t-" + Math.random(), idUsuario: 1, rol: "administrador" }, process.env.JWT_SECRET, { expiresIn: "8h" });
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -217,6 +223,32 @@ describe("Microservicio de pagos", () => {
       const res = await request(app).get("/pagos").set("Authorization", `Bearer ${tokenAdmin()}`);
       expect(res.statusCode).toBe(200);
       expect(res.body[0].monto).toBe(450);
+    });
+  });
+
+  pruebasSeguridadComunes({
+    nombre: "pagos",
+    app,
+    request,
+    jwt,
+    rol: "administrador",
+    estaRevocado: mockEstaRevocado,
+    peticionProtegida: (r, token) => r.get("/pagos").set("Authorization", `Bearer ${token}`),
+  });
+
+  describe("lib/tokensRevocados", () => {
+    const { estaRevocado } = jest.requireActual("../src/pagos/lib/tokensRevocados");
+
+    it("devuelve true cuando el jti figura en tokens_revocados", async () => {
+      mockQuery.mockResolvedValueOnce({ rows: [{ "?column?": 1 }] });
+      await expect(estaRevocado("abc")).resolves.toBe(true);
+      expect(mockQuery.mock.calls[0][0]).toMatch(/tokens_revocados/);
+      expect(mockQuery.mock.calls[0][1]).toEqual(["abc"]);
+    });
+
+    it("devuelve false cuando no figura", async () => {
+      mockQuery.mockResolvedValueOnce({ rows: [] });
+      await expect(estaRevocado("abc")).resolves.toBe(false);
     });
   });
 });

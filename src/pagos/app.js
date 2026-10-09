@@ -2,13 +2,13 @@
 // Microservicio de Pagos y Suscripciones — RF-13..16, RF-20
 require("./lib/asyncErrors"); // debe cargarse antes de las rutas (ver comentario en el archivo)
 const express = require("express");
-const cors = require("cors");
+const { configurarSeguridad } = require("./lib/seguridad");
 const suscripcionesRoutes = require("./routes/suscripciones.routes");
 const planesRoutes = require("./routes/planes.routes");
 const pagosRoutes = require("./routes/pagos.routes");
 
 const app = express();
-app.use(cors());
+configurarSeguridad(app);
 app.use(express.json());
 
 app.get("/health", (_req, res) => {

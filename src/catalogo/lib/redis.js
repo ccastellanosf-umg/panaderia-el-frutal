@@ -1,8 +1,9 @@
-// src/auth/lib/redis.js
-// Cliente Redis compartido — usado para la caché de lecturas
-// (RF-21, logout) y, en catálogo, como caché de lecturas. Se conecta
-// de forma perezosa y nunca lanza si Redis no está disponible: el
-// llamador debe tratar `null` como "Redis no disponible" y degradar.
+// src/catalogo/lib/redis.js
+// Cliente Redis — usado solo como caché de lecturas del catálogo
+// (la revocación de tokens vive en PostgreSQL, ver tokensRevocados.js).
+// Se conecta de forma perezosa y nunca lanza si Redis no está
+// disponible: el llamador debe tratar `null` como "Redis no
+// disponible" y degradar.
 const { createClient } = require("redis");
 
 let cliente = null;

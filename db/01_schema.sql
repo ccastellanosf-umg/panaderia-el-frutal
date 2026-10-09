@@ -207,6 +207,16 @@ CREATE INDEX idx_productos_disponibilidad
 CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_correo_lower
     ON usuarios (LOWER("correo"));
 
+-- DEF-03: tokens JWT cerrados por logout. Los 4 servicios consultan
+-- esta tabla en verificarToken; auth inserta (jti, exp) al cerrar
+-- sesión y borra las filas ya vencidas.
+CREATE TABLE IF NOT EXISTS tokens_revocados (
+    "jti"    TEXT PRIMARY KEY,
+    "expira" TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tokens_revocados_expira
+    ON tokens_revocados ("expira");
+
 
 -- ============================================================
 -- 2. FUNCIONES

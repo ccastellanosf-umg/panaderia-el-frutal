@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="8" failures="0" errors="0" time="9.439">
+  <testsuite name="Seguridad" errors="0" failures="0" skipped="0" timestamp="2026-10-09T20:35:49" time="9.413" tests="8">
+    <testcase classname="Seguridad SEC-01 el logout revoca el token en catalogo, pedidos y pagos (401)" name="Seguridad SEC-01 el logout revoca el token en catalogo, pedidos y pagos (401)" time="3.828" file="tests/e2e/seguridad.e2e.test.js">
+    </testcase>
+    <testcase classname="Seguridad SEC-02 seis inicios de sesión fallidos del mismo correo: el 6.º responde 429" name="Seguridad SEC-02 seis inicios de sesión fallidos del mismo correo: el 6.º responde 429" time="0.75" file="tests/e2e/seguridad.e2e.test.js">
+    </testcase>
+    <testcase classname="Seguridad SEC-03 CORS: un origen ajeno no recibe Access-Control-Allow-Origin y el permitido sí" name="Seguridad SEC-03 CORS: un origen ajeno no recibe Access-Control-Allow-Origin y el permitido sí" time="1.683" file="tests/e2e/seguridad.e2e.test.js">
+    </testcase>
+    <testcase classname="Seguridad SEC-04 cabeceras de seguridad presentes y sin X-Powered-By en los 4 servicios" name="Seguridad SEC-04 cabeceras de seguridad presentes y sin X-Powered-By en los 4 servicios" time="0.402" file="tests/e2e/seguridad.e2e.test.js">
+    </testcase>
+    <testcase classname="Seguridad SEC-05 la URL http:// de cada servicio redirige a https" name="Seguridad SEC-05 la URL http:// de cada servicio redirige a https" time="0.752" file="tests/e2e/seguridad.e2e.test.js">
+    </testcase>
+    <testcase classname="Seguridad SEC-06 un login con inyección SQL responde 400/401, nunca 500" name="Seguridad SEC-06 un login con inyección SQL responde 400/401, nunca 500" time="0.118" file="tests/e2e/seguridad.e2e.test.js">
+    </testcase>
+    <testcase classname="Seguridad SEC-07 un cliente no puede crear productos (403)" name="Seguridad SEC-07 un cliente no puede crear productos (403)" time="0.815" file="tests/e2e/seguridad.e2e.test.js">
+    </testcase>
+    <testcase classname="Seguridad SEC-08 un JWT falsificado o vencido (secreto equivocado) responde 401 en todos los servicios" name="Seguridad SEC-08 un JWT falsificado o vencido (secreto equivocado) responde 401 en todos los servicios" time="0.987" file="tests/e2e/seguridad.e2e.test.js">
+    </testcase>
+  </testsuite>
+</testsuites>

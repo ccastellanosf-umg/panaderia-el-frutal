@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="8" failures="5" errors="0" time="8.989">
+  <testsuite name="Seguridad" errors="0" failures="5" skipped="0" timestamp="2026-10-09T17:52:40" time="8.962" tests="8">
+    <testcase classname="Seguridad SEC-01 el logout revoca el token en catalogo, pedidos y pagos (401)" name="Seguridad SEC-01 el logout revoca el token en catalogo, pedidos y pagos (401)" time="4.458" file="tests/e2e/seguridad.e2e.test.js">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 401
+Received: 200
+    at Object.toBe (/Users/cristiancastellanos/Documents/proyectos/Universidad/Seminario/panaderia-el-frutal/tests/e2e/seguridad.e2e.test.js:78:24)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)</failure>
+    </testcase>
+    <testcase classname="Seguridad SEC-02 seis inicios de sesión fallidos del mismo correo: el 6.º responde 429" name="Seguridad SEC-02 seis inicios de sesión fallidos del mismo correo: el 6.º responde 429" time="0.792" file="tests/e2e/seguridad.e2e.test.js">
+      <failure>Error: expect(received).toMatch(expected)
+
+Expected pattern: /Demasiados intentos/
+Received string:  &quot;Credenciales inválidas.&quot;
+    at Object.toMatch (/Users/cristiancastellanos/Documents/proyectos/Universidad/Seminario/panaderia-el-frutal/tests/e2e/seguridad.e2e.test.js:92:30)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)</failure>
+    </testcase>
+    <testcase classname="Seguridad SEC-03 CORS: un origen ajeno no recibe Access-Control-Allow-Origin y el permitido sí" name="Seguridad SEC-03 CORS: un origen ajeno no recibe Access-Control-Allow-Origin y el permitido sí" time="0.107" file="tests/e2e/seguridad.e2e.test.js">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+- Expected  - 1
++ Received  + 1
+
+  Object {
+-   &quot;acao&quot;: null,
++   &quot;acao&quot;: &quot;*&quot;,
+    &quot;nombre&quot;: &quot;auth&quot;,
+  }
+    at Object.toEqual (/Users/cristiancastellanos/Documents/proyectos/Universidad/Seminario/panaderia-el-frutal/tests/e2e/seguridad.e2e.test.js:109:82)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)</failure>
+    </testcase>
+    <testcase classname="Seguridad SEC-04 cabeceras de seguridad presentes y sin X-Powered-By en los 4 servicios" name="Seguridad SEC-04 cabeceras de seguridad presentes y sin X-Powered-By en los 4 servicios" time="0.101" file="tests/e2e/seguridad.e2e.test.js">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+- Expected  - 1
++ Received  + 1
+
+  Object {
+    &quot;nombre&quot;: &quot;auth&quot;,
+-   &quot;valor&quot;: &quot;nosniff&quot;,
++   &quot;valor&quot;: null,
+  }
+    at Object.toEqual (/Users/cristiancastellanos/Documents/proyectos/Universidad/Seminario/panaderia-el-frutal/tests/e2e/seguridad.e2e.test.js:128:43)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)</failure>
+    </testcase>
+    <testcase classname="Seguridad SEC-05 la URL http:// de cada servicio redirige a https" name="Seguridad SEC-05 la URL http:// de cada servicio redirige a https" time="0.207" file="tests/e2e/seguridad.e2e.test.js">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+- Expected  - 1
++ Received  + 1
+
+  Object {
+    &quot;nombre&quot;: &quot;auth&quot;,
+-   &quot;redirige&quot;: true,
++   &quot;redirige&quot;: false,
+  }
+    at Object.toEqual (/Users/cristiancastellanos/Documents/proyectos/Universidad/Seminario/panaderia-el-frutal/tests/e2e/seguridad.e2e.test.js:140:79)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)</failure>
+    </testcase>
+    <testcase classname="Seguridad SEC-06 un login con inyección SQL responde 400/401, nunca 500" name="Seguridad SEC-06 un login con inyección SQL responde 400/401, nunca 500" time="0.128" file="tests/e2e/seguridad.e2e.test.js">
+    </testcase>
+    <testcase classname="Seguridad SEC-07 un cliente no puede crear productos (403)" name="Seguridad SEC-07 un cliente no puede crear productos (403)" time="1.336" file="tests/e2e/seguridad.e2e.test.js">
+    </testcase>
+    <testcase classname="Seguridad SEC-08 un JWT falsificado o vencido (secreto equivocado) responde 401 en todos los servicios" name="Seguridad SEC-08 un JWT falsificado o vencido (secreto equivocado) responde 401 en todos los servicios" time="1.732" file="tests/e2e/seguridad.e2e.test.js">
+    </testcase>
+  </testsuite>
+</testsuites>

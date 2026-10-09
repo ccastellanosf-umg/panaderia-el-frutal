@@ -1,12 +1,11 @@
 // src/catalogo/routes/catalogo.routes.js
 // Implementa RF-01, RF-02, RF-03, RF-20.
 const express = require("express");
-const { PrismaClient } = require("@prisma/client");
 const verificarToken = require("../middlewares/verificarToken");
 const { obtenerClienteConectado } = require("../lib/redis");
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = require("../lib/prisma");
 
 const CLAVE_CACHE = "catalogo:disponibles";
 const TTL_CACHE = 60; // segundos

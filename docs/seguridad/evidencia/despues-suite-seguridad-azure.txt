@@ -1,0 +1,11 @@
+DESPUÉS — Suite de seguridad (SEC-01 a SEC-08) contra Azure, con los arreglos desplegados — 2026-10-09 14:35:48 CST
+
+    ✓ SEC-01 el logout revoca el token en catalogo, pedidos y pagos (401) (3828 ms)
+    ✓ SEC-02 seis inicios de sesión fallidos del mismo correo: el 6.º responde 429 (750 ms)
+    ✓ SEC-03 CORS: un origen ajeno no recibe Access-Control-Allow-Origin y el permitido sí (1683 ms)
+    ✓ SEC-04 cabeceras de seguridad presentes y sin X-Powered-By en los 4 servicios (402 ms)
+    ✓ SEC-05 la URL http:// de cada servicio redirige a https (752 ms)
+    ✓ SEC-06 un login con inyección SQL responde 400/401, nunca 500 (118 ms)
+    ✓ SEC-07 un cliente no puede crear productos (403) (815 ms)
+    ✓ SEC-08 un JWT falsificado o vencido (secreto equivocado) responde 401 en todos los servicios (987 ms)
+Tests:       8 passed, 8 total

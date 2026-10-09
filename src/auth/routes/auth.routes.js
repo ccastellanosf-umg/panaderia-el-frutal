@@ -4,12 +4,12 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { randomUUID } = require("crypto");
-const { PrismaClient } = require("@prisma/client");
 const verificarToken = require("../middlewares/verificarToken");
-const { obtenerClienteConectado } = require("../lib/redis");
+const prisma = require("../lib/prisma");
+const { revocar } = require("../lib/tokensRevocados");
+const { limiteLogin } = require("../lib/limiteLogin");
 
 const router = express.Router();
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const REGEX_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -54,7 +54,7 @@ router.post("/registro", async (req, res) => {
 });
 
 // POST /auth/login — CP-05, CP-06, DEF-06
-router.post("/login", async (req, res) => {
+router.post("/login", limiteLogin, async (req, res) => {
   try {
     const { correo, contrasena } = req.body || {};
     if (!correo || !contrasena) {
@@ -111,23 +111,17 @@ router.get("/me", verificarToken([]), (req, res) => {
   res.status(200).json({ usuario: req.usuario });
 });
 
-// POST /auth/logout — RF-21: invalida el token actual (lista negra en Redis)
+// POST /auth/logout — RF-21, DEF-03: revoca el jti en PostgreSQL
+// (tabla compartida por los 4 servicios hasta que el token expire).
 router.post("/logout", verificarToken([]), async (req, res) => {
   try {
     const { jti, exp } = req.usuario;
-    if (jti && exp) {
-      const cliente = await obtenerClienteConectado();
-      if (cliente) {
-        const ttlSegundos = exp - Math.floor(Date.now() / 1000);
-        if (ttlSegundos > 0) {
-          await cliente.set(`blacklist:${jti}`, "1", { EX: ttlSegundos });
-        }
-      }
-    }
+    await revocar(jti, exp);
     return res.status(200).json({ mensaje: "Sesión cerrada correctamente." });
-  } catch (_err) {
-    // Redis caído: la sesión igual se considera cerrada del lado del cliente
-    return res.status(200).json({ mensaje: "Sesión cerrada correctamente." });
+  } catch (err) {
+    // Sin poder revocar, la sesión sigue abierta: no se finge éxito.
+    console.error("No se pudo revocar el token:", err.message);
+    return res.status(503).json({ error: "Servicio no disponible." });
   }
 });
 

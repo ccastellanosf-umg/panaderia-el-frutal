@@ -563,7 +563,7 @@ describe("Casos adicionales — defectos DEF-01..DEF-10", () => {
     expect(salud.status).toBe(200);
   }, 40000);
 
-  it("CP-33 (DEF-03, abierto) un token revocado por logout es rechazado con 401 en catalogo/pedidos/pagos", async () => {
+  it("CP-33 (DEF-03) un token revocado por logout es rechazado con 401 en catalogo/pedidos/pagos", async () => {
     // Se usa un login FRESCO de administrador (no la variable
     // compartida `admin`) para no invalidar el token que usan otros
     // casos de esta misma suite; y endpoints admin-only para poder
@@ -580,8 +580,7 @@ describe("Casos adicionales — defectos DEF-01..DEF-10", () => {
       api("GET", `${PEDIDOS_URL}/pedidos`, { token: sesion.token }),
       api("GET", `${PAGOS_URL}/pagos`, { token: sesion.token }),
     ]);
-    // DEF-03 (abierto): hoy responden 200 en vez de 401 porque solo
-    // auth consulta la lista negra de Redis (ver defectos.md).
+    // DEF-03 (corregido): los 4 servicios consultan tokens_revocados.
     expect(enCatalogo.status).toBe(401);
     expect(enPedidos.status).toBe(401);
     expect(enPagos.status).toBe(401);

@@ -1,0 +1,42 @@
+DESPUÉS — Mínimo privilegio en la base de Azure (pg-elfrutalcc), conectando con el usuario de la app — 2026-10-09 14:36:52 CST
+(la cadena de conexión no se muestra)
+
+$ SELECT current_user AS usuario_conectado;
+ usuario_conectado 
+-------------------
+ elfrutal_app
+(1 row)
+
+
+$ SELECT count(*) AS productos_visibles FROM productos;
+ productos_visibles 
+--------------------
+                 47
+(1 row)
+
+
+$ SELECT rolsuper AS es_superusuario, rolcreaterole AS puede_crear_roles, rolcreatedb AS puede_crear_bases FROM pg_roles WHERE rolname = current_user;
+ es_superusuario | puede_crear_roles | puede_crear_bases 
+-----------------+-------------------+-------------------
+ f               | f                 | f
+(1 row)
+
+
+$ CREATE TABLE prueba_privilegio (id int);
+ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE prueba_privilegio (id int);
+                     ^
+
+$ DROP TABLE productos;
+ERROR:  must be owner of table productos
+
+$ ALTER TABLE usuarios ADD COLUMN x int;
+ERROR:  must be owner of table usuarios
+
+$ TRUNCATE pedidos;
+ERROR:  permission denied for table pedidos
+
+$ CREATE ROLE intruso;
+ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+

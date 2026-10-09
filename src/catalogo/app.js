@@ -2,11 +2,11 @@
 // Microservicio de Catálogo Digital — RF-01, RF-02, RF-03
 require("./lib/asyncErrors"); // debe cargarse antes de las rutas (ver comentario en el archivo)
 const express = require("express");
-const cors = require("cors");
+const { configurarSeguridad } = require("./lib/seguridad");
 const catalogoRoutes = require("./routes/catalogo.routes");
 
 const app = express();
-app.use(cors());
+configurarSeguridad(app);
 app.use(express.json());
 
 app.get("/health", (_req, res) => {
