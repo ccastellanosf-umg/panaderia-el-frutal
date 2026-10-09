@@ -3,8 +3,9 @@
 # Transformación Digital de Panadería El Frutal — Grupo 3
 # ============================================================
 # Orquesta los cuatro microservicios (auth, catalogo, pedidos,
-# pagos), la base de datos PostgreSQL y Redis (usado por auth para
-# invalidar tokens y por catálogo como caché de lecturas frecuentes).
+# pagos), la base de datos PostgreSQL y Redis (usado solo por catálogo
+# como caché de lecturas frecuentes; los tokens revocados por logout
+# viven en la tabla tokens_revocados de PostgreSQL).
 #
 # Los cuatro microservicios están completamente implementados
 # (Fase 1). El esquema y los datos semilla se cargan desde db/
@@ -50,10 +51,8 @@ services:
     restart: unless-stopped
     depends_on:
       db: { condition: service_healthy }
-      redis: { condition: service_healthy }
     environment:
       DATABASE_URL: postgresql://${DB_USER:-elfrutal_admin}:${DB_PASSWORD}@db:5432/${DB_NAME:-panaderia_el_frutal}
-      REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET}
       PORT: 3001
     ports:

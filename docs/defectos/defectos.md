@@ -10,7 +10,7 @@
 |----|--------|--------|----------------|-----------|-----------|-----------------|--------|
 | DEF-01 | `precio:"Infinity"` tumba el microservicio catálogo | catalogo | RF-01 | Bloqueante | Alta | CP-31 | Cerrado |
 | DEF-02 | Fecha inválida en reportes tumba el microservicio pedidos (y todo /inventario, /pedidos) | pedidos | RF-17 | Bloqueante | Alta | CP-32 | Cerrado |
-| DEF-03 | El logout no invalida la sesión en catalogo, pedidos ni pagos | auth / catalogo / pedidos / pagos | RF-21, RNF-02 | Crítica | Alta | CP-33 | Abierto |
+| DEF-03 | El logout no invalida la sesión en catalogo, pedidos ni pagos | auth / catalogo / pedidos / pagos | RF-21, RNF-02 | Crítica | Alta | CP-33 | Cerrado |
 | DEF-04 | Se puede cobrar una suscripción ya cancelada | pagos | RF-16 | Crítica | Alta | CP-34 | Cerrado |
 | DEF-05 | Pedidos aceptados y descontados pese a stock insuficiente (clamp a 0) | pedidos | RF-10, RF-11 | Mayor | Alta | CP-35 | Abierto |
 | DEF-06 | Registro duplicado con el mismo correo en distinta capitalización | auth | RF-20/RF-21 | Mayor | Media | CP-36 | Cerrado |
@@ -28,7 +28,7 @@ Dos corridas reales y completas de la suite E2E (`tests/e2e/casos-prueba.e2e.tes
 | 1 (antes de la corrección) | previa a aplicar los fixes de DEF-01,02,04,06,08,09 | 41 | 31 | 10 | 75.6% |
 | 2 (después de la corrección) | tras aplicar los fixes y reconstruir los 4 contenedores | 41 | 37 | 4 | 90.2% |
 
-En la ejecución 2, los 4 casos que siguen fallando son exactamente los 4 defectos dejados abiertos a propósito: CP-33 (DEF-03), CP-35 (DEF-05), CP-37 (DEF-07) y CP-40 (DEF-10). Los 6 casos CP-31, CP-32, CP-34, CP-36, CP-38, CP-39 (DEF-01, 02, 04, 06, 08, 09) pasan a estar en verde.
+En la ejecución 2 (previa a la corrección de DEF-03), los 4 casos que siguen fallando son exactamente los 4 defectos dejados abiertos a propósito: CP-33 (DEF-03), CP-35 (DEF-05), CP-37 (DEF-07) y CP-40 (DEF-10); CP-33 (DEF-03) quedó en verde después, ver DEF-03. Los 6 casos CP-31, CP-32, CP-34, CP-36, CP-38, CP-39 (DEF-01, 02, 04, 06, 08, 09) pasan a estar en verde.
 
 Las pruebas unitarias por servicio (`tests/<svc>.test.js`, con Prisma/Redis/`lib/db` mockeados) pasan en su totalidad tras las correcciones: auth 15/15, catalogo 13/13, pedidos 18/18, pagos 14/14 (60/60).
 
@@ -85,7 +85,9 @@ Las pruebas unitarias por servicio (`tests/<svc>.test.js`, con Prisma/Redis/`lib
 - **Resultado obtenido:** 200 en los tres — acceso administrativo completo concedido pese al logout, durante toda la vigencia del token (hasta 8h).
 - **Evidencia:** `docs/defectos/evidencia/DEF-03.txt`
 - **Causa raíz:** `src/catalogo/middlewares/verificarToken.js`, `src/pedidos/middlewares/verificarToken.js` y `src/pagos/middlewares/verificarToken.js` solo verifican firma/expiración JWT; únicamente `src/auth/middlewares/verificarToken.js:33-45` consulta la lista negra `blacklist:<jti>` en Redis.
-- **Estado:** Abierto (fuera del alcance de esta corrección; CP-33 debe seguir fallando).
+- **Estado:** Cerrado.
+- **Corrección:** tabla `tokens_revocados ("jti" PK, "expira")` en `db/01_schema.sql` y `db/migrations/2026-10-09_tokens_revocados.sql`; `POST /auth/logout` (`src/auth/routes/auth.routes.js`, `src/auth/lib/tokensRevocados.js`) inserta `(jti, exp)` con `ON CONFLICT DO NOTHING` y borra las filas vencidas; el `verificarToken.js` de los 4 servicios consulta la tabla tras `jwt.verify` y responde 401 "Sesión cerrada. Inicie sesión de nuevo." (503 "Servicio no disponible." si la consulta falla, es decir, falla cerrado; un token sin `jti` se rechaza con 401). Se eliminó la lista negra en Redis (Redis queda solo como caché del catálogo), que no existe en Azure.
+- **Verificación:** unitarias en `tests/{auth,catalogo,pedidos,pagos}.test.js` (jti revocado → 401, fallo de consulta → 503, token sin jti → 401, logout persiste la revocación); E2E CP-33 y SEC-01 pasan contra el stack Docker local reconstruido.
 
 ## DEF-04 — Se puede cobrar una suscripción ya cancelada
 

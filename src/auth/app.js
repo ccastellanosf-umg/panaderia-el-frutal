@@ -4,11 +4,11 @@
 // supertest sin abrir sockets reales).
 require("./lib/asyncErrors"); // debe cargarse antes de las rutas (ver comentario en el archivo)
 const express = require("express");
-const cors = require("cors");
+const { configurarSeguridad } = require("./lib/seguridad");
 const authRoutes = require("./routes/auth.routes");
 
 const app = express();
-app.use(cors());
+configurarSeguridad(app);
 app.use(express.json());
 
 // Endpoint de salud, usado por Docker healthcheck y por Azure Pipelines

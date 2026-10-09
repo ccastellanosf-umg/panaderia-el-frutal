@@ -43,3 +43,12 @@ model Cliente {
 
   @@map("clientes")
 }
+
+// DEF-03: tokens cerrados por logout, consultados por los 4 servicios.
+model TokenRevocado {
+  jti    String   @id
+  expira DateTime @db.Timestamptz(6)
+
+  @@index([expira], map: "idx_tokens_revocados_expira")
+  @@map("tokens_revocados")
+}

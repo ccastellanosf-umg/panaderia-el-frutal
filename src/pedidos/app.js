@@ -2,13 +2,13 @@
 // Microservicio de Gestión de Pedidos — RF-04..12, RF-17..20
 require("./lib/asyncErrors"); // debe cargarse antes de las rutas (ver comentario en el archivo)
 const express = require("express");
-const cors = require("cors");
+const { configurarSeguridad } = require("./lib/seguridad");
 const pedidosRoutes = require("./routes/pedidos.routes");
 const inventarioRoutes = require("./routes/inventario.routes");
 const reportesRoutes = require("./routes/reportes.routes");
 
 const app = express();
-app.use(cors());
+configurarSeguridad(app);
 app.use(express.json());
 
 app.get("/health", (_req, res) => {

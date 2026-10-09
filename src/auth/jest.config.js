@@ -1,6 +1,6 @@
 // src/auth/jest.config.js
 // Los tests viven en ../../tests (root) pero las dependencias del
-// servicio (Prisma Client, redis, etc.) solo están instaladas en
+// servicio (Prisma Client, etc.) solo están instaladas en
 // src/auth/node_modules. modulePaths permite que jest.mock(...) y los
 // require(...) de los tests resuelvan esos paquetes.
 module.exports = {

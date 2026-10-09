@@ -1,19 +1,13 @@
 // src/auth/middlewares/verificarToken.js
-// Middleware de autorización — RF-20 (control de acceso por rol/área).
-// Cada microservicio mantiene su propia copia (docker build solo
-// copia src/<svc>). En auth, además valida la lista negra de Redis
-// (RF-21 logout) cuando Redis está disponible; si Redis está caído,
-// degrada de forma segura (nunca bloquea al usuario por eso).
+// Middleware de autorización — RF-20 (control de acceso por rol/área)
+// y RF-21 (logout). Cada microservicio mantiene su propia copia
+// (docker build solo copia src/<svc>); las 4 son idénticas.
+// DEF-03: tras validar la firma, rechaza los tokens revocados por
+// logout consultando la tabla compartida `tokens_revocados`. Si la
+// consulta falla, falla cerrado (503): nunca se acepta un token sin
+// poder comprobar que sigue vigente.
 const jwt = require("jsonwebtoken");
-
-let obtenerClienteConectado = null;
-try {
-  // Carga perezosa y opcional: solo auth tiene lib/redis.js con
-  // soporte de lista negra. Los demás servicios no lo requieren.
-  ({ obtenerClienteConectado } = require("../lib/redis"));
-} catch (_err) {
-  obtenerClienteConectado = null;
-}
+const { estaRevocado } = require("../lib/tokensRevocados");
 
 function verificarToken(rolesPermitidos = [], areasPermitidas = []) {
   return async (req, res, next) => {
@@ -30,18 +24,18 @@ function verificarToken(rolesPermitidos = [], areasPermitidas = []) {
       return res.status(401).json({ error: "Token inválido o expirado." });
     }
 
-    if (obtenerClienteConectado && payload.jti) {
-      try {
-        const cliente = await obtenerClienteConectado();
-        if (cliente) {
-          const enLista = await cliente.get(`blacklist:${payload.jti}`);
-          if (enLista) {
-            return res.status(401).json({ error: "Token inválido o expirado." });
-          }
-        }
-      } catch (_err) {
-        // Redis caído: continuar sin bloquear al usuario (degradación segura)
+    // Todo token emitido por auth lleva jti; sin él no se puede revocar.
+    if (!payload.jti) {
+      return res.status(401).json({ error: "Token inválido o expirado." });
+    }
+
+    try {
+      if (await estaRevocado(payload.jti)) {
+        return res.status(401).json({ error: "Sesión cerrada. Inicie sesión de nuevo." });
       }
+    } catch (err) {
+      console.error("No se pudo consultar tokens_revocados:", err.message);
+      return res.status(503).json({ error: "Servicio no disponible." });
     }
 
     if (rolesPermitidos.length && !rolesPermitidos.includes(payload.rol)) {

@@ -5,6 +5,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
 
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
+const { pruebasSeguridadComunes } = require("./helpers/seguridad");
 
 const mockProducto = {
   findMany: jest.fn(),
@@ -12,8 +13,18 @@ const mockProducto = {
   update: jest.fn(),
 };
 
+const mockTokenRevocado = { findUnique: jest.fn() };
+
 jest.mock("@prisma/client", () => ({
-  PrismaClient: jest.fn().mockImplementation(() => ({ producto: mockProducto })),
+  PrismaClient: jest.fn().mockImplementation(() => ({
+    producto: mockProducto,
+    tokenRevocado: mockTokenRevocado,
+  })),
+}));
+
+const mockEstaRevocado = jest.fn().mockResolvedValue(false);
+jest.mock("../src/catalogo/lib/tokensRevocados", () => ({
+  estaRevocado: (...args) => mockEstaRevocado(...args),
 }));
 
 jest.mock("../src/catalogo/lib/redis", () => ({
@@ -23,11 +34,11 @@ jest.mock("../src/catalogo/lib/redis", () => ({
 const app = require("../src/catalogo/app");
 
 const tokenAdmin = () =>
-  jwt.sign({ idUsuario: 1, rol: "administrador", nombre: "Admin" }, process.env.JWT_SECRET, {
+  jwt.sign({ jti: "t-" + Math.random(), idUsuario: 1, rol: "administrador", nombre: "Admin" }, process.env.JWT_SECRET, {
     expiresIn: "8h",
   });
 const tokenCliente = () =>
-  jwt.sign({ idUsuario: 4, rol: "cliente", idCliente: 1 }, process.env.JWT_SECRET, {
+  jwt.sign({ jti: "t-" + Math.random(), idUsuario: 4, rol: "cliente", idCliente: 1 }, process.env.JWT_SECRET, {
     expiresIn: "8h",
   });
 
@@ -168,6 +179,31 @@ describe("Microservicio de catálogo", () => {
         .set("Authorization", `Bearer ${tokenAdmin()}`)
         .send({ disponibilidad: false });
       expect(res.statusCode).toBe(404);
+    });
+  });
+
+  pruebasSeguridadComunes({
+    nombre: "catalogo",
+    app,
+    request,
+    jwt,
+    rol: "administrador",
+    estaRevocado: mockEstaRevocado,
+    peticionProtegida: (r, token) => r.get("/productos/todos").set("Authorization", `Bearer ${token}`),
+  });
+
+  describe("lib/tokensRevocados", () => {
+    const { estaRevocado } = jest.requireActual("../src/catalogo/lib/tokensRevocados");
+
+    it("devuelve true cuando el jti figura en tokens_revocados", async () => {
+      mockTokenRevocado.findUnique.mockResolvedValueOnce({ jti: "abc" });
+      await expect(estaRevocado("abc")).resolves.toBe(true);
+      expect(mockTokenRevocado.findUnique).toHaveBeenCalledWith({ where: { jti: "abc" } });
+    });
+
+    it("devuelve false cuando no figura", async () => {
+      mockTokenRevocado.findUnique.mockResolvedValueOnce(null);
+      await expect(estaRevocado("abc")).resolves.toBe(false);
     });
   });
 });
