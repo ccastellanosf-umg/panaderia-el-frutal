@@ -1,0 +1,54 @@
+# Evidencia local — usuario de aplicación con mínimo privilegio (elfrutal_app)
+# Fecha: 2026-10-09T17:44Z · BD local (docker compose, PostgreSQL 16) · contraseña desechable, redactada como <REDACTED>
+
+$ psql <ADMIN> -q -v ON_ERROR_STOP=1 -v app_password=<REDACTED> -f db/roles/usuario_app.sql   (2 veces: idempotente)
+-> ejecución 1, código de salida: 0
+-> ejecución 2, código de salida: 0
+
+elfrutal_app@panaderia_el_frutal=> SELECT current_user, count(*) AS productos FROM productos;
+ current_user | productos 
+--------------+-----------
+ elfrutal_app |        16
+(1 row)
+
+
+elfrutal_app@panaderia_el_frutal=> INSERT INTO tokens_revocados (jti, expira) VALUES ('prueba-minimo-privilegio', now() + interval '1 hour');
+INSERT 0 1
+
+elfrutal_app@panaderia_el_frutal=> UPDATE tokens_revocados SET expira = now() + interval '2 hours' WHERE jti = 'prueba-minimo-privilegio';
+UPDATE 1
+
+elfrutal_app@panaderia_el_frutal=> DELETE FROM tokens_revocados WHERE jti = 'prueba-minimo-privilegio';
+DELETE 1
+
+elfrutal_app@panaderia_el_frutal=> SELECT fn_calcular_total_pedido(1);
+ fn_calcular_total_pedido 
+--------------------------
+                    18.00
+(1 row)
+
+
+elfrutal_app@panaderia_el_frutal=> CREATE TABLE x(id int);
+ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE x(id int);
+                     ^
+
+elfrutal_app@panaderia_el_frutal=> DROP TABLE productos;
+ERROR:  must be owner of table productos
+
+elfrutal_app@panaderia_el_frutal=> ALTER TABLE productos ADD COLUMN y int;
+ERROR:  must be owner of table productos
+
+elfrutal_app@panaderia_el_frutal=> TRUNCATE productos;
+ERROR:  permission denied for table productos
+
+elfrutal_app@panaderia_el_frutal=> CREATE ROLE intruso;
+ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+
+# Tras las pruebas la tabla productos sigue intacta:
+ productos 
+-----------
+        16
+(1 row)
+
