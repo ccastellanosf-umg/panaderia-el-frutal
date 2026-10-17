@@ -86,6 +86,9 @@ function ms(v) {
 }
 
 export function handleSummary(data) {
+  // k6 puts whatever setup() returns in the summary; that is the client's
+  // JWT, so it must never reach the stored report.
+  delete data.setup_data;
   const filas = [
     ["Global", "http_req_duration"],
     ["GET /productos", "http_req_duration{endpoint:catalogo}"],
