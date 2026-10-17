@@ -262,6 +262,69 @@ describe("Microservicio de pedidos", () => {
     });
   });
 
+  describe("GET /pedidos/mios (historial del cliente)", () => {
+    // Under load (50 VUs) the history took 1 + 2N queries per request (N+1);
+    // it must use a fixed number of queries whatever the number of orders.
+    function mockHistorial(pedidos, detalle) {
+      mockQuery.mockImplementation((sql) => {
+        if (sql.includes("FROM detalle_pedido dp")) return Promise.resolve({ rows: detalle });
+        return Promise.resolve({ rows: pedidos });
+      });
+    }
+
+    it("usa dos consultas en total, sin importar cuántos pedidos tenga el cliente", async () => {
+      const pedidos = Array.from({ length: 30 }, (_, i) => ({
+        idPedido: 30 - i, estado: "recibido", total: "10.00", idClienteResuelto: 1,
+      }));
+      mockHistorial(pedidos, []);
+      const res = await request(app).get("/pedidos/mios").set("Authorization", `Bearer ${tokenCliente(1)}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveLength(30);
+      expect(mockQuery).toHaveBeenCalledTimes(2);
+    });
+
+    it("no consulta el detalle cuando el cliente no tiene pedidos", async () => {
+      mockHistorial([], []);
+      const res = await request(app).get("/pedidos/mios").set("Authorization", `Bearer ${tokenCliente(1)}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual([]);
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+    });
+
+    it("filtra por el cliente del token sin llamar a fn_cliente_de_pedido por fila", async () => {
+      mockHistorial([], []);
+      await request(app).get("/pedidos/mios").set("Authorization", `Bearer ${tokenCliente(7)}`);
+      const [sql, params] = mockQuery.mock.calls[0];
+      expect(sql).not.toContain("fn_cliente_de_pedido");
+      expect(params).toEqual([7]);
+    });
+
+    it("conserva el orden de los pedidos y agrupa sus ítems con números, igual que antes", async () => {
+      mockHistorial(
+        [
+          { idPedido: 12, estado: "recibido", total: "9.00", idClienteResuelto: 1 },
+          { idPedido: 11, estado: "entregado", total: "3.50", idClienteResuelto: 1 },
+        ],
+        [
+          { idPedido: 11, idDetalle: 1, idProducto: 3, nombre: "Conchas", cantidad: 1, subtotal: "3.50" },
+          { idPedido: 12, idDetalle: 2, idProducto: 1, nombre: "Pan francés", cantidad: 2, subtotal: "3.00" },
+          { idPedido: 12, idDetalle: 3, idProducto: 5, nombre: "Quesadilla", cantidad: 1, subtotal: "6.00" },
+        ]
+      );
+      const res = await request(app).get("/pedidos/mios").set("Authorization", `Bearer ${tokenCliente(1)}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body.map((p) => p.idPedido)).toEqual([12, 11]);
+      expect(res.body[0].total).toBe(9);
+      expect(res.body[0].items).toEqual([
+        { idDetalle: 2, idProducto: 1, nombre: "Pan francés", cantidad: 2, subtotal: 3 },
+        { idDetalle: 3, idProducto: 5, nombre: "Quesadilla", cantidad: 1, subtotal: 6 },
+      ]);
+      expect(res.body[1].items).toEqual([
+        { idDetalle: 1, idProducto: 3, nombre: "Conchas", cantidad: 1, subtotal: 3.5 },
+      ]);
+    });
+  });
+
   describe("DEF-09: cuerpo JSON malformado", () => {
     it("POST /pedidos con JSON malformado responde 400 JSON", async () => {
       const res = await request(app)
