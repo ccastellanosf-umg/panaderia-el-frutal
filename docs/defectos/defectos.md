@@ -18,6 +18,10 @@
 | DEF-08 | `precio:null` crea producto gratuito (Q0.00) sin validación | catalogo | RF-01 | Menor | Media | CP-38 | Cerrado |
 | DEF-09 | JSON malformado responde HTML en vez de error JSON | auth / catalogo / pedidos / pagos | — (consistencia de API) | Menor | Baja | CP-39 | Cerrado |
 | DEF-10 | `fechaEntrega` en el pasado aceptada sin validación | pedidos | RF-04 | Menor | Baja | CP-40 | Abierto |
+| DEF-11 | La regla de 48 h impide pausar o cancelar los planes diario y tres semanales | pagos | RF-16 | Mayor | Alta | Pendiente (Fase 2) | Abierto |
+| DEF-12 | El carrito se vacía al recargar la página | frontend | RF-04, RNF-03 | Menor | Media | Pendiente (Fase 2) | Abierto |
+| DEF-13 | "Restock" reemplaza la existencia del insumo en lugar de sumarla | pedidos (inventario) / frontend | RF-09, RF-10 | Mayor | Alta | Pendiente (Fase 2) | Abierto |
+| DEF-14 | Se permite registrar dos veces la producción del mismo producto y fecha | pedidos (inventario) | RF-12, RF-18 | Mayor | Media | Pendiente (Fase 2) | Abierto |
 
 ## Ejecuciones
 
@@ -205,6 +209,76 @@ Las pruebas unitarias por servicio (`tests/<svc>.test.js`, con Prisma/Redis/`lib
 - **Estado:** Abierto (fuera del alcance de esta corrección; CP-40 debe seguir fallando).
 
 ---
+
+## Fase 2 — Defectos encontrados al elaborar el manual de usuario
+
+DEF-11 a DEF-14 se encontraron el 02/10/2026 al recorrer la aplicación pantalla por pantalla para el manual de usuario (Entregable 11 del Seminario de Tecnologías de Información), y se reprodujeron después con peticiones y navegación reales contra el entorno local (`docker compose` con la base recién sembrada y el frontend en `http://localhost:5173`). Todavía no tienen caso de prueba formal: se diseñarán en la Fase 2.
+
+## DEF-11 — La regla de 48 h impide pausar o cancelar los planes diario y tres semanales
+
+- **Módulo:** pagos (suscripciones)
+- **Requerimiento afectado:** RF-16 (pausar o cancelar la suscripción con 48 horas de anticipación), regla RN-03
+- **Severidad:** Mayor
+- **Prioridad:** Alta
+- **Precondiciones:** cliente autenticado.
+- **Pasos de reproducción:**
+  1. Contratar el plan "diario" (`POST /suscripciones` con `idPlan: 1`).
+  2. Intentar cancelar la suscripción (`PATCH /suscripciones/:id/cancelar`).
+  3. Intentar pausarla (`PATCH /suscripciones/:id/pausar`).
+- **Resultado esperado:** el cliente puede pausar o cancelar su plan. Si la acción no puede aplicarse antes del próximo cobro, se aplica a partir del siguiente periodo, pero nunca queda bloqueada de forma permanente.
+- **Resultado obtenido:** ambas acciones responden 409 "Debes esperar al menos 48 horas antes del próximo cobro…". Recién contratada, la suscripción tiene el próximo cobro a 24 h. El plan diario avanza el cobro 1 día y el de tres semanales 2 días, así que el cobro siempre queda a menos de 48 h y **el cliente nunca puede pausar ni cancelar**. Solo el plan de fin de semana (7 días) lo permite.
+- **Evidencia:** `docs/defectos/evidencia/DEF-11.txt`
+- **Causa raíz:** `src/pagos/routes/suscripciones.routes.js:158` exige al menos 48 h hasta `fechaCobro`, mientras que `db/01_schema.sql:251-270` (`fn_proxima_fecha_cobro`) fija el siguiente cobro a 1 día (diario) o 2 días (tres semanales). La regla RN-03 y la frecuencia de cobro son incompatibles para dos de los tres planes.
+- **Estado:** Abierto.
+
+## DEF-12 — El carrito se vacía al recargar la página
+
+- **Módulo:** frontend (carrito)
+- **Requerimiento afectado:** RF-04 (creación de pedido), RNF-03 (usabilidad)
+- **Severidad:** Menor
+- **Prioridad:** Media
+- **Precondiciones:** cliente con sesión iniciada en el frontend.
+- **Pasos de reproducción:**
+  1. Agregar 3 productos al carrito desde el catálogo. La barra muestra "Carrito (3)".
+  2. Recargar la página (F5).
+- **Resultado esperado:** el carrito conserva los 3 productos, igual que se conserva la sesión.
+- **Resultado obtenido:** la barra muestra "Carrito" sin productos. La sesión sí se conserva (`localStorage` guarda el token y el usuario), pero los productos se pierden.
+- **Evidencia:** `docs/defectos/evidencia/DEF-12.txt`, `DEF-12-antes-de-recargar.png` y `DEF-12-despues-de-recargar.png`
+- **Causa raíz:** `src/frontend/src/context/CartContext.jsx:7` guarda los ítems solo en el estado de React (`useState`), sin persistencia.
+- **Estado:** Abierto.
+
+## DEF-13 — "Restock" reemplaza la existencia del insumo en lugar de sumarla
+
+- **Módulo:** pedidos (inventario) y frontend (pantalla de insumos)
+- **Requerimiento afectado:** RF-09 (registro de insumos), RF-10 (inventario actualizado)
+- **Severidad:** Mayor
+- **Prioridad:** Alta
+- **Precondiciones:** encargado de producción autenticado; insumo "Harina" con 89.92 kg.
+- **Pasos de reproducción:**
+  1. En la pantalla de insumos, escribir 10 en el campo "Restock" de la Harina y presionar "Actualizar" (la interfaz envía `PATCH /inventario/insumos/1` con `{"cantidadDisponible": 10}`).
+  2. Consultar la existencia del insumo.
+- **Resultado esperado:** reabastecer 10 kg deja la existencia en 99.92 kg.
+- **Resultado obtenido:** la existencia queda en **10 kg**: se perdieron 89.92 kg del registro y además se dispara la alerta de nivel crítico (mínimo 10 kg).
+- **Evidencia:** `docs/defectos/evidencia/DEF-13.txt`
+- **Causa raíz:** el campo se rotula "Restock" (reabastecer) en `src/frontend/src/pages/produccion/Insumos.jsx:170`, pero `aplicarRestock` (líneas 59-70) envía el valor como existencia total, y `src/pedidos/routes/inventario.routes.js:64-74` lo asigna directamente (`SET "cantidadDisponible" = valor`).
+- **Estado:** Abierto.
+
+## DEF-14 — Se permite registrar dos veces la producción del mismo producto y fecha
+
+- **Módulo:** pedidos (inventario y reportes)
+- **Requerimiento afectado:** RF-12 (registro de producto terminado), RF-18 (reporte de inventario y mermas)
+- **Severidad:** Mayor
+- **Prioridad:** Media
+- **Precondiciones:** encargado de producción autenticado.
+- **Pasos de reproducción:**
+  1. Registrar 30 unidades de Champurradas (producto 2) con fecha 02/10/2026.
+  2. Repetir exactamente el mismo registro.
+  3. Consultar el reporte de inventario de ese día.
+- **Resultado esperado:** el segundo registro se rechaza o actualiza el existente; la producción del día queda en 30 unidades.
+- **Resultado obtenido:** ambos registros se aceptan (201) y el reporte muestra **60 unidades producidas** y una merma de 43, en lugar de 30 y 13.
+- **Evidencia:** `docs/defectos/evidencia/DEF-14.txt`
+- **Causa raíz:** la tabla `produccion_diaria` (`db/01_schema.sql:186-192`) no tiene restricción de unicidad sobre (`idProducto`, `fecha`), y `POST /inventario/produccion` (`src/pedidos/routes/inventario.routes.js:181-195`) siempre inserta una fila nueva.
+- **Estado:** Abierto.
 
 ## Observaciones (no defectos)
 

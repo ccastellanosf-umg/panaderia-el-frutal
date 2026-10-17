@@ -1,0 +1,34 @@
+DEF-14 — Evidencia (entorno local docker compose) — 2026-10-02 09:27:25 CST
+1. Registrar producción del producto 2 para 2026-10-02 (cantidad 30):
+$ curl -X POST /inventario/produccion {idProducto:2, fecha:"2026-10-02", cantidadProducida:30}
+{"idProduccion":5,"idProducto":2,"fecha":"2026-10-02T00:00:00.000Z","cantidadProducida":30}
+HTTP 201
+
+2. Registrar producción del producto 2 para 2026-10-02 (cantidad 30):
+$ curl -X POST /inventario/produccion {idProducto:2, fecha:"2026-10-02", cantidadProducida:30}
+{"idProduccion":6,"idProducto":2,"fecha":"2026-10-02T00:00:00.000Z","cantidadProducida":30}
+HTTP 201
+
+3. Listado de producción del día:
+$ curl /inventario/produccion?desde=2026-10-02&hasta=2026-10-02
+[
+ {
+  "idProduccion": 6,
+  "idProducto": 2,
+  "fecha": "2026-10-02T00:00:00.000Z",
+  "cantidadProducida": 30,
+  "producto": "Champurradas"
+ },
+ {
+  "idProduccion": 5,
+  "idProducto": 2,
+  "fecha": "2026-10-02T00:00:00.000Z",
+  "cantidadProducida": 30,
+  "producto": "Champurradas"
+ }
+]
+
+4. Reporte de inventario (mermas) del día:
+[{"idProducto":2,"producido":60,"vendido":17,"merma":43}]
+
+Conclusión: se aceptan dos registros del mismo producto y fecha; el reporte suma ambos y duplica lo producido y la merma.

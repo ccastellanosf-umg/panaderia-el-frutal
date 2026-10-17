@@ -1,0 +1,14 @@
+DEF-13 — Evidencia (entorno local docker compose) — 2026-10-02 09:27:25 CST
+1. Estado inicial del insumo 1:
+$ curl /inventario/insumos (insumo 1)
+{"idInsumo":1,"nombre":"Harina","cantidadDisponible":89.92,"nivelMinimo":10,"unidadMedida":"kg"}
+
+2. Reabastecer 10 unidades usando el campo 'Restock' (la UI envía {cantidadDisponible: 10}):
+$ curl -X PATCH /inventario/insumos/1 {"cantidadDisponible":10}
+{"idInsumo":1,"nombre":"Harina","cantidadDisponible":10,"nivelMinimo":10,"unidadMedida":"kg"}
+HTTP 200
+
+3. Estado final del insumo 1:
+{"idInsumo":1,"nombre":"Harina","cantidadDisponible":10,"nivelMinimo":10,"unidadMedida":"kg"}
+
+Conclusión: la existencia quedó en 10 (se reemplazó) en lugar de sumar 10 a la existencia previa.

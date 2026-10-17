@@ -1,0 +1,27 @@
+DEF-11 — Evidencia (entorno local docker compose) — 2026-10-02 09:27:25 CST
+Planes disponibles:
+$ curl -s http://localhost:3004/planes
+[{"idPlan":1,"nombre":"Plan diario","frecuencia":"diario","precio":450},{"idPlan":2,"nombre":"Plan tres semanales","frecuencia":"tres_semanales","precio":300},{"idPlan":3,"nombre":"Plan fin de semana","frecuencia":"fin_de_semana","precio":150}]
+
+1. Contratar el plan 'diario' (idPlan=1):
+$ curl -X POST /suscripciones {idPlan:1, surtido:[{idProducto:1,cantidad:6}]}
+{"idSuscripcion":9,"idCliente":8,"idPlan":1,"fechaInicio":"2026-10-02T00:00:00.000Z","fechaCobro":"2026-10-03T15:27:25.446Z","estado":"activa","planNombre":"Plan diario","frecuencia":"diario","precio":450,"surtido":[{"idProducto":1,"nombre":"Pan francés","cantidad":6}]}
+HTTP 201
+
+2. Intentar cancelar inmediatamente después de contratar (suscripción 9):
+$ curl -X PATCH /suscripciones/9/cancelar
+{"error":"Debes esperar al menos 48 horas antes del próximo cobro para realizar esta acción."}
+HTTP 409
+
+3. Intentar pausar:
+$ curl -X PATCH /suscripciones/9/pausar
+{"error":"Debes esperar al menos 48 horas antes del próximo cobro para realizar esta acción."}
+HTTP 409
+
+Fecha de próximo cobro registrada:
+ idSuscripcion | estado |             ahora             |         fechaCobro         | horas_hasta_cobro 
+---------------+--------+-------------------------------+----------------------------+-------------------
+             9 | activa | 2026-10-02 15:27:25.520825+00 | 2026-10-03 15:27:25.446537 |              24.0
+(1 row)
+
+Conclusión: con el plan diario el próximo cobro siempre está a menos de 48 h (el cobro avanza 1 día), por lo que el cliente nunca puede pausar ni cancelar.
