@@ -12,20 +12,23 @@
 # Least privilege: the 4 App Services connect as the DB role "elfrutal_app"
 # (DML only, no DDL; see db/roles/usuario_app.sql). The ADMIN connection string
 # is never stored in the apps; it is only used here, for migrations and roles:
-#   - first run: taken from the auth app's current DATABASE_URL (still the admin).
+#   - first deploy (auth app does not exist yet): ADMIN_DATABASE_URL and
+#     JWT_SECRET are required. scripts/bootstrap-azure.sh writes them to
+#     ~/.elfrutal/azure-<suffix>.secrets:
+#       source ~/.elfrutal/azure-g3.secrets && ./scripts/deploy-azure.sh
 #   - later runs: export ADMIN_DATABASE_URL="postgresql://admin:...@host:5432/db?sslmode=require"
 #     (needed for migrations, --reset-db and --rotate-app-password). Without it
 #     the DB steps are skipped and the apps keep their current DATABASE_URL.
+#
+# Names, subscription and region come from scripts/azure-config.sh.
+# Run scripts/bootstrap-azure.sh first on a fresh subscription.
 #
 # Requirements: az (logged in), docker with buildx, psql, openssl, python3, node/npm.
 # ============================================================
 set -euo pipefail
 
-RG="rg-elfrutal-transformacion-digital"
-PLAN="plan-elfrutal"
-ACR="acrelfrutalcc"
-SWA="swa-elfrutal-frontend-cc"
-SERVICES=(auth catalogo pedidos pagos)
+# shellcheck source=scripts/azure-config.sh
+source "$(dirname "${BASH_SOURCE[0]}")/azure-config.sh"
 TAG="$(git rev-parse --short HEAD)-$(date +%Y%m%d%H%M)"
 RESET_DB=false
 ROTATE_APP_PASSWORD=false
@@ -37,25 +40,39 @@ for arg in "$@"; do
   esac
 done
 APP_ROLE="elfrutal_app"
-CORS_ORIGINS="https://zealous-desert-0449b2f10.2.azurestaticapps.net"
-
-app_name() { echo "app-elfrutal-$1-cc"; }
-port_of() {
-  case "$1" in auth) echo 3001 ;; catalogo) echo 3002 ;; pedidos) echo 3003 ;; pagos) echo 3004 ;; esac
-}
 step() { printf '\n==> %s\n' "$*"; }
 
-# Secrets are read from the existing auth app so they never live in the repo.
-CURRENT_DATABASE_URL="$(az webapp config appsettings list -g "$RG" -n "$(app_name auth)" \
-  --query "[?name=='DATABASE_URL'].value" -o tsv)"
-JWT_SECRET="$(az webapp config appsettings list -g "$RG" -n "$(app_name auth)" \
-  --query "[?name=='JWT_SECRET'].value" -o tsv)"
-[[ -n "$CURRENT_DATABASE_URL" && -n "$JWT_SECRET" ]] || { echo "Missing DATABASE_URL/JWT_SECRET on $(app_name auth)"; exit 1; }
+az account set --subscription "$SUBSCRIPTION_ID"
+
+# The only allowed browser origin is the Static Web App's default hostname.
+SWA_HOST="$(az staticwebapp show -n "$SWA" -g "$RG" --query defaultHostname -o tsv)"
+[[ -n "$SWA_HOST" ]] || { echo "Static Web App $SWA not found: run scripts/bootstrap-azure.sh first"; exit 1; }
+CORS_ORIGINS="https://${SWA_HOST}"
+
+# Secrets never live in the repo. If the auth app exists they are read from it;
+# on the first deploy they must come from the environment (bootstrap secrets file).
+if az webapp show -g "$RG" -n "$(app_name auth)" --query name -o tsv >/dev/null 2>&1; then
+  CURRENT_DATABASE_URL="$(az webapp config appsettings list -g "$RG" -n "$(app_name auth)" \
+    --query "[?name=='DATABASE_URL'].value" -o tsv)"
+  APP_JWT_SECRET="$(az webapp config appsettings list -g "$RG" -n "$(app_name auth)" \
+    --query "[?name=='JWT_SECRET'].value" -o tsv)"
+  JWT_SECRET="${JWT_SECRET:-$APP_JWT_SECRET}"
+  unset APP_JWT_SECRET
+  [[ -n "$CURRENT_DATABASE_URL" && -n "$JWT_SECRET" ]] || { echo "Missing DATABASE_URL/JWT_SECRET on $(app_name auth)"; exit 1; }
+else
+  [[ -n "${ADMIN_DATABASE_URL:-}" && -n "${JWT_SECRET:-}" ]] || {
+    echo "First deploy: ADMIN_DATABASE_URL and JWT_SECRET are required."
+    echo "Run: source ~/.elfrutal/azure-${SUFFIX}.secrets  (created by scripts/bootstrap-azure.sh)"
+    exit 1
+  }
+  # The role step below creates $APP_ROLE, so the apps never get the admin URL.
+  CURRENT_DATABASE_URL="$ADMIN_DATABASE_URL"
+fi
 
 url_user() { local r="${1#*://}"; r="${r%%@*}"; echo "${r%%:*}"; }
 
-# Admin URL: explicit env var, or (first run only) the auth app's URL while it
-# still holds the admin credentials. Never echoed.
+# Admin URL: explicit env var, or the auth app's URL while it still holds the
+# admin credentials. Never echoed.
 ADMIN_URL="${ADMIN_DATABASE_URL:-}"
 if [[ -z "$ADMIN_URL" && "$(url_user "$CURRENT_DATABASE_URL")" != "$APP_ROLE" ]]; then
   ADMIN_URL="$CURRENT_DATABASE_URL"
@@ -169,7 +186,7 @@ step "Building and deploying the frontend"
 SWA_TOKEN="$(az staticwebapp secrets list -n "$SWA" -g "$RG" --query properties.apiKey -o tsv)"
 npx --yes @azure/static-web-apps-cli deploy src/frontend/build \
   --deployment-token "$SWA_TOKEN" --env production
-echo "Frontend: https://$(az staticwebapp show -n "$SWA" -g "$RG" --query defaultHostname -o tsv)"
+echo "Frontend: https://${SWA_HOST}"
 
 # ------------------------------------------------------------
 # 5. Health checks (containers may take ~2 min to start)
@@ -187,11 +204,7 @@ done
 
 cat <<EOF
 
-Done. Run the 30 test cases against Azure with:
-  AUTH_URL=https://$(app_name auth).azurewebsites.net \\
-  CATALOGO_URL=https://$(app_name catalogo).azurewebsites.net \\
-  PEDIDOS_URL=https://$(app_name pedidos).azurewebsites.net \\
-  PAGOS_URL=https://$(app_name pagos).azurewebsites.net \\
-  DATABASE_URL="\$(az webapp config appsettings list -g $RG -n $(app_name auth) --query "[?name=='DATABASE_URL'].value" -o tsv)" \\
-  npm run test:e2e
+Done. Frontend: https://${SWA_HOST}
+Run the 30 test cases against Azure (reads DATABASE_URL from the auth app) with:
+  npm run test:e2e:azure
 EOF
