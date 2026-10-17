@@ -3,7 +3,8 @@
 # scripts/bootstrap-azure.sh
 # One-time (idempotent) provisioning of the Azure infrastructure:
 # resource providers, resource group, PostgreSQL Flexible Server,
-# ACR, App Service plan and Static Web App. Then loads the schema
+# ACR, App Service plan, Static Web App and monitoring (Log Analytics,
+# Application Insights, alert action group). Then loads the schema
 # and seed into an EMPTY database.
 #
 # Usage (from the repository root, after `az login`):
@@ -43,7 +44,7 @@ state="$(az account show --query state -o tsv)"
 # Resource providers (NotRegistered on a fresh subscription)
 # ------------------------------------------------------------
 step "Registering resource providers"
-PROVIDERS=(Microsoft.Web Microsoft.DBforPostgreSQL Microsoft.ContainerRegistry)
+PROVIDERS=(Microsoft.Web Microsoft.DBforPostgreSQL Microsoft.ContainerRegistry Microsoft.Insights Microsoft.OperationalInsights)
 for p in "${PROVIDERS[@]}"; do
   az provider register --namespace "$p" -o none
 done
@@ -168,6 +169,45 @@ if ! az staticwebapp show -g "$RG" -n "$SWA" --query name -o tsv >/dev/null 2>&1
   az staticwebapp create -g "$RG" -n "$SWA" -l "$SWA_LOCATION" --sku Free -o none
 else
   echo "Static Web App $SWA already exists."
+fi
+
+# ------------------------------------------------------------
+# Monitoring: Log Analytics + Application Insights + alert action group
+# Cost control: PerGB2018 with a 0.1 GB/day cap and 30-day retention stays
+# inside the free 5 GB/month ingestion.
+# ------------------------------------------------------------
+if ! az monitor log-analytics workspace show -g "$RG" -n "$LAW" --query name -o tsv >/dev/null 2>&1; then
+  step "Creating Log Analytics workspace $LAW (PerGB2018, 0.1 GB/day cap, 30 days)"
+  az monitor log-analytics workspace create -g "$RG" -n "$LAW" -l "$LOCATION" \
+    --sku PerGB2018 --quota 0.1 --retention-time 30 -o none
+else
+  echo "Log Analytics workspace $LAW already exists."
+fi
+
+# The 'monitor app-insights' commands come from a CLI extension.
+az extension add --name application-insights --upgrade -y --only-show-errors
+if ! az monitor app-insights component show -g "$RG" --app "$APPI" --query name -o tsv >/dev/null 2>&1; then
+  step "Creating Application Insights $APPI (workspace-based)"
+  LAW_ID="$(az monitor log-analytics workspace show -g "$RG" -n "$LAW" --query id -o tsv)"
+  az monitor app-insights component create -g "$RG" --app "$APPI" -l "$LOCATION" \
+    --workspace "$LAW_ID" --kind web --application-type Node.JS -o none
+else
+  echo "Application Insights $APPI already exists."
+fi
+
+if ! az monitor action-group show -g "$RG" -n "$ACTION_GROUP" --query name -o tsv >/dev/null 2>&1; then
+  step "Creating action group $ACTION_GROUP (email: $ALERT_EMAILS)"
+  receivers=()
+  i=0
+  for email in $ALERT_EMAILS; do
+    i=$((i + 1))
+    receivers+=(--action email "admin${i}" "$email")
+  done
+  [[ ${#receivers[@]} -gt 0 ]] || die "ALERT_EMAILS is empty: the action group needs at least one address."
+  az monitor action-group create -g "$RG" -n "$ACTION_GROUP" --short-name ElFrutal \
+    "${receivers[@]}" -o none
+else
+  echo "Action group $ACTION_GROUP already exists."
 fi
 
 # ------------------------------------------------------------
