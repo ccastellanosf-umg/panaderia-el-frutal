@@ -7,6 +7,7 @@ process.env.PASARELA_MODO = "simulada";
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
 const { pruebasSeguridadComunes } = require("./helpers/seguridad");
+const { pruebasTelemetria } = require("./helpers/telemetria");
 
 const mockQuery = jest.fn();
 const mockConTransaccion = jest.fn();
@@ -251,4 +252,10 @@ describe("Microservicio de pagos", () => {
       await expect(estaRevocado("abc")).resolves.toBe(false);
     });
   });
+});
+
+// Telemetría de Application Insights (SDK sustituido por un doble de prueba).
+pruebasTelemetria({
+  nombre: "pagos",
+  iniciarTelemetria: require("../src/pagos/lib/telemetria").iniciarTelemetria,
 });

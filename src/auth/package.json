@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.19.0",
+    "applicationinsights": "~3.16.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.6",
     "express": "^4.19.2",
