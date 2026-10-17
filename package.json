@@ -10,7 +10,7 @@
   "scripts": {
     "test": "echo \"Ejecuta las pruebas unitarias desde cada src/<servicio> (ver README).\"",
     "test:e2e": "jest --config tests/e2e/jest.e2e.config.js",
-    "demo:video": "AUTH_URL=https://app-elfrutal-auth-cc.azurewebsites.net CATALOGO_URL=https://app-elfrutal-catalogo-cc.azurewebsites.net PEDIDOS_URL=https://app-elfrutal-pedidos-cc.azurewebsites.net PAGOS_URL=https://app-elfrutal-pagos-cc.azurewebsites.net jest --config tests/e2e/jest.e2e.config.js -t \"CP-01|CP-13|CP-33\" --reporters=./tests/e2e/demo-reporter.js",
+    "demo:video": "bash scripts/e2e-azure.sh -t \"CP-01|CP-13|CP-33\" --reporters=./tests/e2e/demo-reporter.js",
     "test:e2e:azure": "bash scripts/e2e-azure.sh"
   },
   "repository": {

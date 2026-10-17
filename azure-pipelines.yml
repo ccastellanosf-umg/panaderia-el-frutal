@@ -20,10 +20,10 @@ pr:
       - main
 
 variables:
-  azureSubscription: 'Conexion-ServicePrincipal-ElFrutal'
+  azureSubscription: 'Conexion-ElFrutal-G3'
   resourceGroupName: 'rg-elfrutal-transformacion-digital'
-  acrName: 'acrelfrutalcc'
-  staticWebAppName: 'swa-elfrutal-frontend-cc'
+  acrName: 'acrelfrutalg3'
+  staticWebAppName: 'swa-elfrutal-frontend-g3'
   frontendDirectory: 'src/frontend'
 
 stages:
@@ -89,10 +89,10 @@ stages:
             workingDirectory: '$(frontendDirectory)'
             displayName: 'Compilar el frontend'
             env:
-              VITE_AUTH_URL: 'https://app-elfrutal-auth-cc.azurewebsites.net'
-              VITE_CATALOGO_URL: 'https://app-elfrutal-catalogo-cc.azurewebsites.net'
-              VITE_PEDIDOS_URL: 'https://app-elfrutal-pedidos-cc.azurewebsites.net'
-              VITE_PAGOS_URL: 'https://app-elfrutal-pagos-cc.azurewebsites.net'
+              VITE_AUTH_URL: 'https://app-elfrutal-auth-g3.azurewebsites.net'
+              VITE_CATALOGO_URL: 'https://app-elfrutal-catalogo-g3.azurewebsites.net'
+              VITE_PEDIDOS_URL: 'https://app-elfrutal-pedidos-g3.azurewebsites.net'
+              VITE_PAGOS_URL: 'https://app-elfrutal-pagos-g3.azurewebsites.net'
 
           - publish: '$(frontendDirectory)/build'
             artifact: 'frontend-build'
@@ -163,16 +163,16 @@ stages:
           matrix:
             auth:
               serviceName: 'auth'
-              appServiceName: 'app-elfrutal-auth-cc'
+              appServiceName: 'app-elfrutal-auth-g3'
             catalogo:
               serviceName: 'catalogo'
-              appServiceName: 'app-elfrutal-catalogo-cc'
+              appServiceName: 'app-elfrutal-catalogo-g3'
             pedidos:
               serviceName: 'pedidos'
-              appServiceName: 'app-elfrutal-pedidos-cc'
+              appServiceName: 'app-elfrutal-pedidos-g3'
             pagos:
               serviceName: 'pagos'
-              appServiceName: 'app-elfrutal-pagos-cc'
+              appServiceName: 'app-elfrutal-pagos-g3'
         steps:
           - task: AzureCLI@2
             displayName: 'Build y push de la imagen de $(serviceName) a ACR (linux/amd64)'
