@@ -9,6 +9,7 @@
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
+    "applicationinsights": "~3.16.0",
     "cors": "^2.8.5",
     "exceljs": "^4.4.0",
     "express": "^4.19.2",

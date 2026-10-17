@@ -24,6 +24,13 @@ PG_SERVER="${PG_SERVER:-pg-elfrutal${SUFFIX}}"
 PG_DB="${PG_DB:-elfrutal}"
 PG_ADMIN_USER="${PG_ADMIN_USER:-elfrutaladmin}"
 
+# Monitoring: Log Analytics workspace + workspace-based Application Insights.
+LAW="${LAW:-law-elfrutal-${SUFFIX}}"
+APPI="${APPI:-appi-elfrutal-${SUFFIX}}"
+ACTION_GROUP="${ACTION_GROUP:-ag-elfrutal-${SUFFIX}}"
+# Space-separated list of addresses notified by the availability alerts.
+ALERT_EMAILS="${ALERT_EMAILS:-ccastellanosf@miumg.edu.gt kgarciag26@miumg.edu.gt}"
+
 # Per-user file with ADMIN_DATABASE_URL and JWT_SECRET (kept outside the repo).
 SECRETS_FILE="${SECRETS_FILE:-$HOME/.elfrutal/azure-${SUFFIX}.secrets}"
 

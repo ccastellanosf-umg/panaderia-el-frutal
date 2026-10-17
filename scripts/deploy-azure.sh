@@ -138,6 +138,19 @@ done
 # 3. App Services (creates pedidos/pagos if missing)
 # ------------------------------------------------------------
 ACR_ID="$(az acr show -n "$ACR" --query id -o tsv)"
+
+# Application Insights connection string, read once and never printed.
+# Without the component (bootstrap not re-run) telemetry is skipped.
+APPI_CONNECTION_STRING="$(az monitor app-insights component show -g "$RG" --app "$APPI" \
+  --query connectionString -o tsv 2>/dev/null || true)"
+if [[ -z "$APPI_CONNECTION_STRING" ]]; then
+  echo "WARNING: Application Insights $APPI not found: telemetry disabled (re-run scripts/bootstrap-azure.sh)."
+fi
+ACTION_GROUP_ID="$(az monitor action-group show -g "$RG" -n "$ACTION_GROUP" --query id -o tsv 2>/dev/null || true)"
+if [[ -z "$ACTION_GROUP_ID" ]]; then
+  echo "WARNING: action group $ACTION_GROUP not found: availability alerts will be skipped."
+fi
+
 for s in "${SERVICES[@]}"; do
   app="$(app_name "$s")"
   port="$(port_of "$s")"
@@ -155,10 +168,20 @@ for s in "${SERVICES[@]}"; do
   step "Configuring $app"
   az webapp config set -g "$RG" -n "$app" \
     --generic-configurations '{"acrUseManagedIdentityCreds": true}' -o none
-  az webapp config appsettings set -g "$RG" -n "$app" -o none --settings \
-    DATABASE_URL="$APP_DATABASE_URL" JWT_SECRET="$JWT_SECRET" \
-    PORT="$port" WEBSITES_PORT="$port" WEBSITES_ENABLE_APP_SERVICE_STORAGE=false \
+  settings=(
+    DATABASE_URL="$APP_DATABASE_URL" JWT_SECRET="$JWT_SECRET"
+    PORT="$port" WEBSITES_PORT="$port" WEBSITES_ENABLE_APP_SERVICE_STORAGE=false
     PASARELA_MODO=simulada NODE_ENV=production CORS_ORIGINS="$CORS_ORIGINS"
+  )
+  if [[ -n "$APPI_CONNECTION_STRING" ]]; then
+    settings+=("APPLICATIONINSIGHTS_CONNECTION_STRING=$APPI_CONNECTION_STRING")
+  fi
+  az webapp config appsettings set -g "$RG" -n "$app" -o none --settings "${settings[@]}"
+  unset settings
+  # App Service health check: unhealthy instances leave the load balancer
+  # and feed the HealthCheckStatus metric used by the alert below.
+  az webapp config set -g "$RG" -n "$app" \
+    --generic-configurations '{"healthCheckPath": "/health"}' -o none
   # HTTP -> HTTPS redirect handled by App Service.
   az webapp update -g "$RG" -n "$app" --https-only true -o none
   # There is no Redis in Azure: without REDIS_URL the services read straight
@@ -168,6 +191,22 @@ for s in "${SERVICES[@]}"; do
     --container-image-name "$image" \
     --container-registry-url "https://${ACR}.azurecr.io"
   az webapp restart -g "$RG" -n "$app" -o none
+
+  # Availability alert on the health check (free: no availability web test).
+  if [[ -n "$ACTION_GROUP_ID" ]]; then
+    alert="alert-${app}-health"
+    if ! az monitor metrics alert show -g "$RG" -n "$alert" --query name -o tsv >/dev/null 2>&1; then
+      step "Creating alert $alert"
+      app_id="$(az webapp show -g "$RG" -n "$app" --query id -o tsv)"
+      az monitor metrics alert create -g "$RG" -n "$alert" --scopes "$app_id" \
+        --condition "avg HealthCheckStatus < 100" \
+        --window-size 5m --evaluation-frequency 5m --severity 1 \
+        --description "Health check of $app is failing (/health)" \
+        --action "$ACTION_GROUP_ID" -o none
+    else
+      echo "Alert $alert already exists."
+    fi
+  fi
 done
 
 # ------------------------------------------------------------

@@ -7,7 +7,6 @@ const request = require("supertest");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { pruebasSeguridadComunes } = require("./helpers/seguridad");
-
 const mockUsuario = {
   findUnique: jest.fn(),
   create: jest.fn(),
@@ -357,3 +356,6 @@ describe("Microservicio de autenticación", () => {
     });
   });
 });
+
+// Telemetría de Application Insights (SDK sustituido por un doble de prueba).
+require("./helpers/telemetria").pruebasTelemetria("auth");

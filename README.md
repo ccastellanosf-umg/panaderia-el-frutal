@@ -113,10 +113,12 @@ El equipo trabaja con **GitHub Flow**: la rama `main` se mantiene siempre desple
 
 Los nombres, la suscripción y la región se definen en `scripts/azure-config.sh` (sobrescribibles con variables de entorno).
 
-1. `az login` y, una sola vez por suscripción: `./scripts/bootstrap-azure.sh`. Registra los proveedores, crea el grupo de recursos, PostgreSQL, ACR, el plan de App Service y la Static Web App, y carga el esquema y los datos semilla. Los secretos se guardan fuera del repositorio, en `~/.elfrutal/azure-g3.secrets`.
+1. `az login` y, una sola vez por suscripción: `./scripts/bootstrap-azure.sh`. Registra los proveedores, crea el grupo de recursos, PostgreSQL, ACR, el plan de App Service, la Static Web App y el monitoreo (Log Analytics, Application Insights y un grupo de acciones por correo; `ALERT_EMAILS` los destinatarios), y carga el esquema y los datos semilla. Los secretos se guardan fuera del repositorio, en `~/.elfrutal/azure-g3.secrets`.
 2. `source ~/.elfrutal/azure-g3.secrets && ./scripts/deploy-azure.sh`: construye y publica las imágenes, crea o actualiza las App Services y despliega el frontend.
 3. En Azure DevOps, crear la conexión de servicio `Conexion-ElFrutal-G3` y actualizar la variable secreta `AZURE_STATIC_WEB_APPS_API_TOKEN`.
 4. `npm run test:e2e:azure` ejecuta las pruebas E2E contra el despliegue.
+
+**Monitoreo.** Cada microservicio envía telemetría a Application Insights cuando existe `APPLICATIONINSIGHTS_CONNECTION_STRING` (el despliegue la configura; en local y en CI queda desactivada). `deploy-azure.sh` activa además el Health check de App Service sobre `/health` y una alerta por servicio (`HealthCheckStatus` < 100 durante 5 min) que avisa por correo. Costo: se usa la ingesta gratuita de 5 GB/mes con un tope diario de 0.1 GB y retención de 30 días; no se crean pruebas web de disponibilidad de Application Insights para evitar unos USD 40/mes.
 
 ## Licencia y uso académico
 

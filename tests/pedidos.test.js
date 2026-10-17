@@ -6,7 +6,6 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
 const { pruebasSeguridadComunes } = require("./helpers/seguridad");
-
 const mockQuery = jest.fn();
 const mockConTransaccion = jest.fn();
 const mockMapearErrorDb = jest.fn((err) => {
@@ -390,3 +389,6 @@ describe("Microservicio de pedidos", () => {
     });
   });
 });
+
+// Telemetría de Application Insights (SDK sustituido por un doble de prueba).
+require("./helpers/telemetria").pruebasTelemetria("pedidos");
