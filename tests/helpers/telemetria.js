@@ -17,7 +17,9 @@ function crearSdkFalso() {
   return { setup: jest.fn().mockReturnValue(configuracion), configuracion };
 }
 
-function pruebasTelemetria({ nombre, iniciarTelemetria }) {
+// Registers the telemetry tests for one service, e.g. pruebasTelemetria("pagos").
+function pruebasTelemetria(nombre) {
+  const { iniciarTelemetria } = require(`../../src/${nombre}/lib/telemetria`);
   describe(`Telemetría (${nombre})`, () => {
     it("sin APPLICATIONINSIGHTS_CONNECTION_STRING no usa el SDK y devuelve false", () => {
       const sdk = crearSdkFalso();

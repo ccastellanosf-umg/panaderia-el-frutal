@@ -6,8 +6,6 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
 const { pruebasSeguridadComunes } = require("./helpers/seguridad");
-const { pruebasTelemetria } = require("./helpers/telemetria");
-
 const mockProducto = {
   findMany: jest.fn(),
   create: jest.fn(),
@@ -210,7 +208,4 @@ describe("Microservicio de catálogo", () => {
 });
 
 // Telemetría de Application Insights (SDK sustituido por un doble de prueba).
-pruebasTelemetria({
-  nombre: "catalogo",
-  iniciarTelemetria: require("../src/catalogo/lib/telemetria").iniciarTelemetria,
-});
+require("./helpers/telemetria").pruebasTelemetria("catalogo");
