@@ -11,7 +11,7 @@
   "dependencies": {
     "@prisma/client": "^5.19.0",
     "applicationinsights": "~3.16.0",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "express": "^4.19.2",
     "express-rate-limit": "^7.5.1",
@@ -26,7 +26,7 @@
   "allowScripts": {
     "@prisma/client@5.22.0": true,
     "@prisma/engines@5.22.0": true,
-    "bcrypt@5.1.1": true,
+    "bcrypt@6.0.0": true,
     "fsevents@2.3.3": true,
     "prisma@5.22.0": true
   }
