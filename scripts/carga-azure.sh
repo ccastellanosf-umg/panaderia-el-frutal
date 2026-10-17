@@ -8,8 +8,10 @@
 # Usage (from the repository root, with a client account of the app):
 #   K6_CORREO=... K6_CONTRASENA=... npm run test:carga:azure
 #
-# Results in test-results/carga/: resumen.md, resumen.json and
-# reporte.html (k6 web dashboard with the charts).
+# Each run writes to its own folder, test-results/carga/<YYYYMMDD-HHMMSS>/:
+# resumen.md, resumen.json and reporte.html (k6 web dashboard charts).
+# If the dashboard (http://127.0.0.1:5665) is open in a browser, k6 waits
+# for that tab to be closed before printing the summary.
 # Requires: k6 (brew install k6), curl.
 # ============================================================
 set -euo pipefail
@@ -25,7 +27,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/azure-config.sh"
 AUTH_URL="https://$(app_name auth).azurewebsites.net"
 CATALOGO_URL="https://$(app_name catalogo).azurewebsites.net"
 PEDIDOS_URL="https://$(app_name pedidos).azurewebsites.net"
-RESULTADOS_DIR="test-results/carga"
+# One folder per run so a new run never overwrites the previous evidence.
+RESULTADOS_DIR="test-results/carga/$(date +%Y%m%d-%H%M%S)"
 export AUTH_URL CATALOGO_URL PEDIDOS_URL RESULTADOS_DIR
 mkdir -p "$RESULTADOS_DIR"
 
