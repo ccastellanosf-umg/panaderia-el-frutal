@@ -9,14 +9,21 @@
 # ============================================================
 set -euo pipefail
 
-RG="rg-elfrutal-transformacion-digital"
-export AUTH_URL="https://app-elfrutal-auth-cc.azurewebsites.net"
-export CATALOGO_URL="https://app-elfrutal-catalogo-cc.azurewebsites.net"
-export PEDIDOS_URL="https://app-elfrutal-pedidos-cc.azurewebsites.net"
-export PAGOS_URL="https://app-elfrutal-pagos-cc.azurewebsites.net"
-DATABASE_URL="$(az webapp config appsettings list -g "$RG" -n app-elfrutal-auth-cc \
+# shellcheck source=scripts/azure-config.sh
+source "$(dirname "${BASH_SOURCE[0]}")/azure-config.sh"
+az account set --subscription "$SUBSCRIPTION_ID"
+
+AUTH_URL="https://$(app_name auth).azurewebsites.net"
+CATALOGO_URL="https://$(app_name catalogo).azurewebsites.net"
+PEDIDOS_URL="https://$(app_name pedidos).azurewebsites.net"
+PAGOS_URL="https://$(app_name pagos).azurewebsites.net"
+export AUTH_URL CATALOGO_URL PEDIDOS_URL PAGOS_URL
+DATABASE_URL="$(az webapp config appsettings list -g "$RG" -n "$(app_name auth)" \
   --query "[?name=='DATABASE_URL'].value" -o tsv)"
 export DATABASE_URL
+# SEC-03 checks CORS against the origin the services actually allow.
+CORS_PERMITIDO="https://$(az staticwebapp show -n "$SWA" -g "$RG" --query defaultHostname -o tsv)"
+export CORS_PERMITIDO
 
 # Wake up the App Services first: a cold start can exceed the test timeout.
 for url in "$AUTH_URL" "$CATALOGO_URL" "$PEDIDOS_URL" "$PAGOS_URL"; do
