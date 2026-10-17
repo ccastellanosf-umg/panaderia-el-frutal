@@ -94,13 +94,33 @@ router.post("/", verificarToken(["cliente"]), async (req, res) => {
 // GET /pedidos/mios — cliente (historial, RF-07)
 router.get("/mios", verificarToken(["cliente"]), async (req, res) => {
   const idCliente = req.usuario.idCliente;
+  // Two queries whatever the number of orders (was 1 + 2N). The client is
+  // resolved with a join, the same rule as fn_cliente_de_pedido, so the
+  // filter can use the indexes on idCliente / idSuscripcion.
   const { rows } = await query(
-    `SELECT p."idPedido" FROM pedidos p
-     WHERE fn_cliente_de_pedido(p."idPedido") = $1
+    `SELECT p.*, COALESCE(p."idCliente", s."idCliente") AS "idClienteResuelto"
+     FROM pedidos p
+     LEFT JOIN suscripciones s ON s."idSuscripcion" = p."idSuscripcion"
+     WHERE p."idCliente" = $1 OR s."idCliente" = $1
      ORDER BY p."fecha" DESC, p."idPedido" DESC`,
     [idCliente]
   );
-  const pedidos = await Promise.all(rows.map((r) => obtenerPedidoCompleto(r.idPedido)));
+  if (!rows.length) return res.status(200).json([]);
+
+  const detalle = await query(
+    `SELECT dp."idPedido", dp."idDetalle", dp."idProducto", pr."nombre", dp."cantidad", dp."subtotal"
+     FROM detalle_pedido dp
+     JOIN productos pr ON pr."idProducto" = dp."idProducto"
+     WHERE dp."idPedido" = ANY($1::int[])
+     ORDER BY dp."idPedido", dp."idDetalle"`,
+    [rows.map((p) => p.idPedido)]
+  );
+  const itemsPorPedido = new Map();
+  for (const { idPedido, ...item } of detalle.rows) {
+    if (!itemsPorPedido.has(idPedido)) itemsPorPedido.set(idPedido, []);
+    itemsPorPedido.get(idPedido).push({ ...item, subtotal: Number(item.subtotal) });
+  }
+  const pedidos = rows.map((p) => ({ ...aNumero(p), items: itemsPorPedido.get(p.idPedido) || [] }));
   return res.status(200).json(pedidos);
 });
 

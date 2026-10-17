@@ -11,7 +11,8 @@
     "test": "echo \"Ejecuta las pruebas unitarias desde cada src/<servicio> (ver README).\"",
     "test:e2e": "jest --config tests/e2e/jest.e2e.config.js",
     "demo:video": "bash scripts/e2e-azure.sh -t \"CP-01|CP-13|CP-33\" --reporters=./tests/e2e/demo-reporter.js",
-    "test:e2e:azure": "bash scripts/e2e-azure.sh"
+    "test:e2e:azure": "bash scripts/e2e-azure.sh",
+    "test:carga:azure": "bash scripts/carga-azure.sh"
   },
   "repository": {
     "type": "git",
