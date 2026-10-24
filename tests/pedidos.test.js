@@ -20,6 +20,9 @@ const mockMapearErrorDb = jest.fn((err) => {
 });
 
 const mockClienteTx = { query: jest.fn(), release: jest.fn() };
+// Doble del paquete pg: permite ejecutar el lib/db real (transacciones y
+// traducción de errores) sin servidor PostgreSQL ni red. La justificación
+// completa está en describe("lib/db (módulo real)").
 jest.mock("../src/pedidos/node_modules/pg", () => ({
   Pool: jest.fn(() => ({
     query: (...a) => mockPoolQuery(...a),
@@ -689,6 +692,7 @@ describe("routes/inventario.routes", () => {
     it("un error desconocido responde 400 genérico", async () => {
       mockQuery.mockRejectedValue(new Error("caída"));
       const res = await request(app).post("/inventario/insumos").set(prod()).send({ nombre: "Sal", unidadMedida: "kg" });
+      expect(res.statusCode).toBe(400);
       expect(res.body).toEqual({ error: "No fue posible crear el insumo." });
     });
   });
