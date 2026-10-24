@@ -29,10 +29,14 @@ export CORS_PERMITIDO
 SECRETS_FILE="${SECRETS_FILE:-$HOME/.elfrutal/azure-g3.secrets}"
 # shellcheck disable=SC1090
 [[ -f "$SECRETS_FILE" ]] && source "$SECRETS_FILE"
+faltantes=()
 for var in SEED_ADMIN_PASSWORD SEED_VENTAS_PASSWORD SEED_PRODUCCION_PASSWORD SEED_CLIENTE_PASSWORD; do
-  [[ -n "${!var:-}" ]] || { echo "$var is required (see $SECRETS_FILE)."; exit 1; }
-  export "${var?}"
+  if [[ -n "${!var:-}" ]]; then export "${var?}"; else faltantes+=("$var"); fi
 done
+if (( ${#faltantes[@]} )); then
+  echo "Missing variables (see $SECRETS_FILE): ${faltantes[*]}"
+  exit 1
+fi
 
 # Wake up the App Services first: a cold start can exceed the test timeout.
 for url in "$AUTH_URL" "$CATALOGO_URL" "$PEDIDOS_URL" "$PAGOS_URL"; do

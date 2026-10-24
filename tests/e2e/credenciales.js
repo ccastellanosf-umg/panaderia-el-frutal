@@ -9,9 +9,21 @@ const SEMILLA = {
   cliente: ["cliente@elfrutal.com", "SEED_CLIENTE_PASSWORD", "Cliente1234"],
 };
 
-function credencial(rol) {
+// Las contraseñas de la semilla solo sirven contra servicios por http
+// (localhost o la red de docker compose en CI, p. ej. http://auth:3001);
+// los despliegues (Azure) siempre usan https.
+function esLocal(url) {
+  return url.startsWith("http://");
+}
+
+function credencial(rol, authUrl = process.env.AUTH_URL || "http://localhost:3001") {
+  if (!SEMILLA[rol]) throw new Error(`Rol semilla desconocido: ${rol}`);
   const [correo, variable, local] = SEMILLA[rol];
-  return { correo, contrasena: process.env[variable] || local };
+  if (process.env[variable]) return { correo, contrasena: process.env[variable] };
+  if (!esLocal(authUrl)) {
+    throw new Error(`${variable} es obligatoria contra ${authUrl}: la contraseña de la semilla solo vale en local`);
+  }
+  return { correo, contrasena: local };
 }
 
 module.exports = { credencial };
