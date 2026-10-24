@@ -4,6 +4,7 @@
 // PAGOS_URL apuntan a Azure). Cada caso es independiente y usa
 // correos desechables únicos para no bloquear cuentas reales.
 const crypto = require("crypto");
+const { credencial } = require("./credenciales");
 
 const AUTH_URL = process.env.AUTH_URL || "http://localhost:3001";
 const CATALOGO_URL = process.env.CATALOGO_URL || "http://localhost:3002";
@@ -52,6 +53,11 @@ async function login(correo, contrasena) {
   return r.body;
 }
 
+function loginComo(rol) {
+  const { correo, contrasena } = credencial(rol);
+  return login(correo, contrasena);
+}
+
 // JWT HS256 armado a mano: permite firmar con un secreto equivocado.
 function jwtFalso(payload, secreto = "secreto-equivocado") {
   const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
@@ -62,7 +68,7 @@ function jwtFalso(payload, secreto = "secreto-equivocado") {
 
 describe("Seguridad", () => {
   it("SEC-01 el logout revoca el token en catalogo, pedidos y pagos (401)", async () => {
-    const sesion = await login("admin@elfrutal.com", "Admin1234");
+    const sesion = await loginComo("admin");
     const antes = await api("GET", PROTEGIDOS.catalogo, { token: sesion.token });
     expect(antes.status).toBe(200);
 
