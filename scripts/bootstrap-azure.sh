@@ -118,6 +118,10 @@ fi
 # TLS is required by default on Flexible Server; enforce it explicitly.
 az postgres flexible-server parameter set -g "$RG" -s "$PG_SERVER" \
   --name require_secure_transport --value on -o none
+# db/02_seed.sql hashes the seed passwords with pgcrypto's crypt();
+# Flexible Server only allows extensions listed in azure.extensions.
+az postgres flexible-server parameter set -g "$RG" -s "$PG_SERVER" \
+  --name azure.extensions --value PGCRYPTO -o none
 
 # Created with --public-access None so no permissive default rule is added;
 # public access is then enabled and restricted by the firewall rules below.
