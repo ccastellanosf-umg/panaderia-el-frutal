@@ -80,6 +80,9 @@ panaderia-el-frutal/
    planes e historial de ventas) la primera vez que se crea el contenedor `db`. Credenciales
    semilla: `admin@elfrutal.com` / `Admin1234`, `ventas@elfrutal.com` / `Ventas1234`,
    `produccion@elfrutal.com` / `Produccion1234`, `cliente@elfrutal.com` / `Cliente1234`.
+   Estas contraseñas son solo del entorno local. En Azure son distintas: se guardan como
+   `SEED_<ROL>_PASSWORD` en `~/.elfrutal/azure-g3.secrets`, que el equipo comparte por un
+   canal privado, y `scripts/e2e-azure.sh` y `scripts/carga-azure.sh` las leen de ahí.
 
 5. Pruebas end-to-end contra el stack ya levantado:
    ```bash
