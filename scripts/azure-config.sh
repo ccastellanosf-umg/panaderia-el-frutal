@@ -40,5 +40,11 @@ fi
 
 app_name() { echo "app-elfrutal-$1-${SUFFIX}"; }
 port_of() {
-  case "$1" in auth) echo 3001 ;; catalogo) echo 3002 ;; pedidos) echo 3003 ;; pagos) echo 3004 ;; esac
+  case "$1" in
+    auth) echo 3001 ;;
+    catalogo) echo 3002 ;;
+    pedidos) echo 3003 ;;
+    pagos) echo 3004 ;;
+    *) echo "Unknown service: $1" >&2; return 1 ;;
+  esac
 }

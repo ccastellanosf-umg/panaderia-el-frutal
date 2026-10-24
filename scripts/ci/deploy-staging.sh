@@ -35,6 +35,7 @@ service_port() {
     catalogo) echo 4002 ;;
     pedidos) echo 4003 ;;
     pagos) echo 4004 ;;
+    *) echo "Unknown service: $1" >&2; return 1 ;;
   esac
 }
 
