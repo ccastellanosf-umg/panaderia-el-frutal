@@ -2,22 +2,27 @@
 # azure-pipelines.yml
 # Transformación Digital de Panadería El Frutal — Grupo 3
 # ============================================================
-# Pipeline básico requerido para esta entrega: Build + Test + Deploy
-# sobre los cuatro microservicios (auth, catalogo, pedidos, pagos),
-# todos completamente implementados en la Fase 1.
+# Pipeline de integración y despliegue continuo: Build + Test + Deploy
+# sobre los cuatro microservicios (auth, catalogo, pedidos, pagos)
+# y el frontend.
 #
-# Estrategia de ramas: GitHub Flow. Los Pull Requests disparan
-# únicamente Build y Test; Deploy solo se ejecuta al fusionar a main.
+# Estrategia de ramas: dev (integración) -> qa (validación) -> main
+# (producción). Los Pull Requests y los pushes a dev y qa ejecutan
+# Build y Test; Deploy a Azure solo se ejecuta al fusionar a main.
 
 trigger:
   branches:
     include:
       - main
+      - qa
+      - dev
 
 pr:
   branches:
     include:
       - main
+      - qa
+      - dev
 
 variables:
   azureSubscription: 'Conexion-ElFrutal-G3'
