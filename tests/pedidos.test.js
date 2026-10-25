@@ -390,5 +390,36 @@ describe("Microservicio de pedidos", () => {
   });
 });
 
+// Log injection: el modo simulado de WhatsApp imprime texto del usuario.
+describe("notificaciones: registro seguro del modo simulado", () => {
+  it("no imprime saltos de línea del destino ni del mensaje", async () => {
+    const original = process.env.WHATSAPP_API_URL;
+    delete process.env.WHATSAPP_API_URL;
+    const traza = jest.spyOn(console, "log").mockImplementation(() => {});
+    const { enviarWhatsapp } = jest.requireActual("../src/pedidos/lib/notificaciones");
+
+    const estado = await enviarWhatsapp("hola\r\n[ERROR] forjado", "pedido:1\nX");
+
+    expect(estado).toBe("enviada");
+    expect(traza).toHaveBeenCalledTimes(1);
+    const linea = traza.mock.calls[0].join(" ");
+    expect(linea).not.toMatch(/[\r\n]/);
+    expect(linea).toContain("hola");
+    traza.mockRestore();
+    if (original !== undefined) process.env.WHATSAPP_API_URL = original;
+  });
+});
+
+describe("lib/log: sanitizarLog", () => {
+  const { sanitizarLog } = require("../src/pedidos/lib/log");
+  it("reemplaza caracteres de control por espacios", () => {
+    expect(sanitizarLog("a\r\nb\tc\u0000d")).toBe("a  b c d");
+  });
+  it("trunca valores largos y acepta no-strings", () => {
+    expect(sanitizarLog("x".repeat(500)).length).toBeLessThanOrEqual(201);
+    expect(sanitizarLog(undefined)).toBe("undefined");
+  });
+});
+
 // Telemetría de Application Insights (SDK sustituido por un doble de prueba).
 require("./helpers/telemetria").pruebasTelemetria("pedidos");
