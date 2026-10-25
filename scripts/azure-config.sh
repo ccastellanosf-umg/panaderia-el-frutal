@@ -39,6 +39,60 @@ if [[ -z "${SERVICES+x}" ]]; then
 fi
 
 app_name() { echo "app-elfrutal-$1-${SUFFIX}"; }
+
+# Production passwords of the seed users (db/02_seed.sql keeps the local
+# README values). Kept as SEED_<ROLE>_PASSWORD in $SECRETS_FILE.
+SEED_ROLES=(admin ventas produccion cliente)
+seed_var() { echo "SEED_$(echo "$1" | tr '[:lower:]' '[:upper:]')_PASSWORD"; }
+
+# Loads $SECRETS_FILE if needed and fails listing every missing variable.
+require_seed_passwords() {
+  local r v missing=()
+  # shellcheck disable=SC1090
+  [[ -f "$SECRETS_FILE" ]] && source "$SECRETS_FILE"
+  for r in "${SEED_ROLES[@]}"; do
+    v="$(seed_var "$r")"
+    [[ -n "${!v:-}" ]] || missing+=("$v")
+  done
+  if (( ${#missing[@]} )); then
+    echo "Missing production seed passwords (see $SECRETS_FILE): ${missing[*]}" >&2
+    return 1
+  fi
+}
+
+# Appends random seed passwords for any role that has none (never overwrites).
+ensure_seed_passwords() {
+  local r v
+  # shellcheck disable=SC1090
+  [[ -f "$SECRETS_FILE" ]] && source "$SECRETS_FILE"
+  for r in "${SEED_ROLES[@]}"; do
+    v="$(seed_var "$r")"
+    if [[ -z "${!v:-}" ]]; then
+      printf -v "$v" '%s' "$(openssl rand -base64 30 | tr -dc 'A-Za-z0-9' | head -c 20)"
+      ( umask 077; printf 'export %s=%q\n' "$v" "${!v}" >> "$SECRETS_FILE" )
+    fi
+  done
+  chmod 600 "$SECRETS_FILE"
+}
+
+# Replaces the README passwords loaded by the seed with the production ones.
+# Passwords travel as psql variables: never in argv or in the output.
+apply_seed_passwords() {
+  local url="$1" r v rows
+  for r in "${SEED_ROLES[@]}"; do
+    v="$(seed_var "$r")"
+    rows="$(psql "$url" -X -q -tA -v ON_ERROR_STOP=1 -v c="$r@elfrutal.com" -v p="${!v}" <<'SQL'
+WITH u AS (
+  UPDATE usuarios SET "contrasenaHash" = crypt(:'p', gen_salt('bf', 10))
+  WHERE correo = :'c' RETURNING 1
+)
+SELECT count(*) FROM u;
+SQL
+)"
+    [[ "$rows" == "1" ]] || { echo "Seed user $r@elfrutal.com not updated ($rows rows)" >&2; return 1; }
+  done
+  echo "Production passwords applied to ${#SEED_ROLES[@]} seed users."
+}
 port_of() {
   case "$1" in
     auth) echo 3001 ;;
