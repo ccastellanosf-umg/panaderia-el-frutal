@@ -2,13 +2,21 @@
 # azure-pipelines.yml
 # Transformación Digital de Panadería El Frutal — Grupo 3
 # ============================================================
-# Pipeline de integración y despliegue continuo: Build + Test + Deploy
-# sobre los cuatro microservicios (auth, catalogo, pedidos, pagos)
-# y el frontend.
+# Pipeline de integración y despliegue continuo sobre los cuatro
+# microservicios (auth, catalogo, pedidos, pagos) y el frontend.
+#
+# Orden de las etapas:
+#   1. Build           instalación y compilación
+#   2. Test            pruebas unitarias con cobertura (Jest y Vitest)
+#   3. CalidadSonar    análisis estático en SonarCloud y quality gate
+#   4. Deploy          despliegue a Azure (solo main)
+#   (las pruebas de API se agregarán más adelante, antes de Deploy)
 #
 # Estrategia de ramas: dev (integración) -> qa (validación) -> main
 # (producción). Los Pull Requests y los pushes a dev y qa ejecutan
-# Build y Test; Deploy a Azure solo se ejecuta al fusionar a main.
+# Build, Test y CalidadSonar; Deploy a Azure solo se ejecuta al fusionar
+# a main. Si el quality gate de SonarCloud falla, el pipeline falla y no
+# se despliega.
 
 trigger:
   batch: true
@@ -87,10 +95,6 @@ stages:
             workingDirectory: '$(frontendDirectory)'
             displayName: 'Instalar dependencias del frontend'
 
-          - script: npm test
-            workingDirectory: '$(frontendDirectory)'
-            displayName: 'Ejecutar pruebas del frontend (Vitest)'
-
           - script: npm run build
             workingDirectory: '$(frontendDirectory)'
             displayName: 'Compilar el frontend'
@@ -147,18 +151,128 @@ stages:
             workingDirectory: 'src/$(serviceName)'
             displayName: 'Instalar dependencias compartidas de pruebas (supertest)'
 
-          - script: npx jest $(serviceName).test.js --roots ../../tests --ci --forceExit
+          - script: npx jest $(serviceName).test.js --roots ../../tests --ci --forceExit --coverage
             workingDirectory: 'src/$(serviceName)'
-            displayName: 'Ejecutar pruebas de $(serviceName)'
+            displayName: 'Ejecutar pruebas de $(serviceName) con cobertura'
             env:
               JWT_SECRET: 'clave-de-pruebas-no-productiva'
 
+          # Jest genera rutas relativas al servicio (SF:app.js); SonarCloud
+          # las necesita relativas a la raíz del repositorio. perl -pi es
+          # portable (el agente es macOS: sed -i de GNU no funciona).
+          - script: perl -pi -e 's#^SF:#SF:src/$(serviceName)/#' coverage/lcov.info
+            workingDirectory: 'src/$(serviceName)'
+            displayName: 'Reescribir rutas de cobertura de $(serviceName)'
+
+          - publish: 'src/$(serviceName)/coverage/lcov.info'
+            artifact: 'coverage-$(serviceName)'
+            displayName: 'Publicar cobertura de $(serviceName)'
+
+      - job: UnitTestsFrontend
+        displayName: 'Pruebas unitarias (Vitest) del frontend'
+        pool:
+          name: 'Default'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Instalar Node.js 20'
+
+          - script: npm ci
+            workingDirectory: '$(frontendDirectory)'
+            displayName: 'Instalar dependencias del frontend'
+
+          - script: npm run test:coverage
+            workingDirectory: '$(frontendDirectory)'
+            displayName: 'Ejecutar pruebas del frontend con cobertura'
+
+          # Mismo ajuste de rutas que en los microservicios (ver arriba).
+          - script: perl -pi -e 's#^SF:#SF:src/frontend/#' coverage/lcov.info
+            workingDirectory: '$(frontendDirectory)'
+            displayName: 'Reescribir rutas de cobertura del frontend'
+
+          - publish: '$(frontendDirectory)/coverage/lcov.info'
+            artifact: 'coverage-frontend'
+            displayName: 'Publicar cobertura del frontend'
+
   # ------------------------------------------------------------
-  # ETAPA 3: DEPLOY (solo main; solo servicios del Sprint 1)
+  # ETAPA 3: CALIDAD — análisis estático en SonarCloud y quality gate
+  # ------------------------------------------------------------
+  - stage: CalidadSonar
+    displayName: 'Análisis estático (SonarCloud) y quality gate'
+    dependsOn: Test
+    jobs:
+      - job: SonarCloud
+        displayName: 'Análisis de SonarCloud y verificación del quality gate'
+        pool:
+          name: 'Default'
+        steps:
+          # fetchDepth 0: SonarCloud necesita el historial completo para
+          # atribuir el código nuevo y los blames correctamente.
+          - checkout: self
+            fetchDepth: 0
+
+          # Los reportes se descargan a $(Pipeline.Workspace)/coverage/<nombre>
+          # y Sonar los lee directamente desde ahí (sus rutas SF: ya son
+          # relativas a la raíz del repositorio), sin copiarlos al código.
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Descargar cobertura de auth'
+            inputs:
+              artifact: 'coverage-auth'
+              path: '$(Pipeline.Workspace)/coverage/auth'
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Descargar cobertura de catalogo'
+            inputs:
+              artifact: 'coverage-catalogo'
+              path: '$(Pipeline.Workspace)/coverage/catalogo'
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Descargar cobertura de pedidos'
+            inputs:
+              artifact: 'coverage-pedidos'
+              path: '$(Pipeline.Workspace)/coverage/pedidos'
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Descargar cobertura de pagos'
+            inputs:
+              artifact: 'coverage-pagos'
+              path: '$(Pipeline.Workspace)/coverage/pagos'
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Descargar cobertura del frontend'
+            inputs:
+              artifact: 'coverage-frontend'
+              path: '$(Pipeline.Workspace)/coverage/frontend'
+
+          - task: SonarCloudPrepare@3
+            displayName: 'Preparar análisis de SonarCloud'
+            inputs:
+              SonarCloud: 'SonarCloud-ElFrutal'
+              organization: 'ccastellanosf-umg'
+              scannerMode: 'cli'
+              configMode: 'file'   # lee sonar-project.properties
+              extraProperties: |
+                sonar.javascript.lcov.reportPaths=$(Pipeline.Workspace)/coverage/auth/lcov.info,$(Pipeline.Workspace)/coverage/catalogo/lcov.info,$(Pipeline.Workspace)/coverage/pedidos/lcov.info,$(Pipeline.Workspace)/coverage/pagos/lcov.info,$(Pipeline.Workspace)/coverage/frontend/lcov.info
+                sonar.qualitygate.wait=true
+
+          # Con sonar.qualitygate.wait=true, este paso falla el job si el
+          # quality gate no se cumple.
+          - task: SonarCloudAnalyze@3
+            displayName: 'Ejecutar análisis de SonarCloud'
+
+          - task: SonarCloudPublish@3
+            displayName: 'Publicar resultado del quality gate'
+            inputs:
+              pollingTimeoutSec: '300'
+
+  # ------------------------------------------------------------
+  # (Las pruebas de API se agregarán más adelante entre CalidadSonar
+  # y Deploy.)
+  # ------------------------------------------------------------
+
+  # ------------------------------------------------------------
+  # ETAPA 4: DEPLOY (solo main; solo servicios del Sprint 1)
   # ------------------------------------------------------------
   - stage: Deploy
     displayName: 'Despliegue a Azure (los cuatro microservicios)'
-    dependsOn: Test
+    dependsOn: CalidadSonar
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
       - job: DeployMicroservicios
