@@ -1,0 +1,73 @@
+{
+  "component": {
+    "id": "AaDHJjmYLS3M2T2E1iqT",
+    "key": "ccastellanosf-umg_panaderia-el-frutal",
+    "name": "panaderia-el-frutal",
+    "qualifier": "TRK",
+    "measures": [
+      {
+        "metric": "reliability_rating",
+        "value": "1.0",
+        "bestValue": true
+      },
+      {
+        "metric": "duplicated_lines_density",
+        "value": "8.1",
+        "bestValue": false
+      },
+      {
+        "metric": "code_smells",
+        "value": "182",
+        "bestValue": false
+      },
+      {
+        "metric": "security_rating",
+        "value": "5.0",
+        "bestValue": false
+      },
+      {
+        "metric": "sqale_debt_ratio",
+        "value": "1.7",
+        "bestValue": false
+      },
+      {
+        "metric": "security_hotspots",
+        "value": "0",
+        "bestValue": true
+      },
+      {
+        "metric": "sqale_index",
+        "value": "4333",
+        "bestValue": false
+      },
+      {
+        "metric": "sqale_rating",
+        "value": "1.0",
+        "bestValue": true
+      },
+      {
+        "metric": "alert_status",
+        "value": "ERROR"
+      },
+      {
+        "metric": "bugs",
+        "value": "0",
+        "bestValue": true
+      },
+      {
+        "metric": "duplicated_blocks",
+        "value": "34",
+        "bestValue": false
+      },
+      {
+        "metric": "ncloc",
+        "value": "8715"
+      },
+      {
+        "metric": "vulnerabilities",
+        "value": "42",
+        "bestValue": false
+      }
+    ]
+  }
+}
