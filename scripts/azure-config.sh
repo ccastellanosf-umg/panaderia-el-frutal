@@ -75,23 +75,31 @@ ensure_seed_passwords() {
   chmod 600 "$SECRETS_FILE"
 }
 
-# Replaces the README passwords loaded by the seed with the production ones.
-# Passwords travel as psql variables: never in argv or in the output.
+# Replaces the README passwords loaded by the seed with the production ones,
+# in a single transaction: either every seed user is updated or none is.
+# Passwords reach psql through exported environment variables read with
+# \getenv (psql >= 15): they are not in argv nor in the output. The SQL piped
+# to psql only carries variable names.
 apply_seed_passwords() {
-  local url="$1" r v rows
+  local url="$1" r v n=${#SEED_ROLES[@]} rows sql cases="" correos=""
+  sql="BEGIN;"$'\n'
   for r in "${SEED_ROLES[@]}"; do
     v="$(seed_var "$r")"
-    rows="$(psql "$url" -X -q -tA -v ON_ERROR_STOP=1 -v c="$r@elfrutal.com" -v p="${!v}" <<'SQL'
-WITH u AS (
-  UPDATE usuarios SET "contrasenaHash" = crypt(:'p', gen_salt('bf', 10))
-  WHERE correo = :'c' RETURNING 1
-)
-SELECT count(*) FROM u;
-SQL
-)"
-    [[ "$rows" == "1" ]] || { echo "Seed user $r@elfrutal.com not updated ($rows rows)" >&2; return 1; }
+    export "${v?}"
+    sql+="\\getenv p_$r $v"$'\n'
+    cases+=" WHEN '$r@elfrutal.com' THEN crypt(:'p_$r', gen_salt('bf', 10))"
+    correos+="${correos:+, }'$r@elfrutal.com'"
   done
-  echo "Production passwords applied to ${#SEED_ROLES[@]} seed users."
+  sql+="WITH u AS (UPDATE usuarios SET \"contrasenaHash\" = CASE correo$cases END"
+  sql+=" WHERE correo IN ($correos) RETURNING 1) SELECT count(*) AS filas FROM u \\gset"$'\n'
+  sql+="SELECT :filas = $n AS completo \\gset"$'\n'
+  sql+="\\if :completo"$'\n'"COMMIT;"$'\n'"\\else"$'\n'"ROLLBACK;"$'\n'"\\endif"$'\n'"\\echo :filas"$'\n'
+  rows="$(printf '%s' "$sql" | psql "$url" -X -q -tA -v ON_ERROR_STOP=1)"
+  if [[ "$rows" != "$n" ]]; then
+    echo "Seed passwords NOT applied: expected $n seed users, found $rows. The transaction was rolled back; no user was changed." >&2
+    return 1
+  fi
+  echo "Production passwords applied to $n seed users."
 }
 port_of() {
   case "$1" in
