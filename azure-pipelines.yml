@@ -14,10 +14,16 @@
 #   5. Deploy          despliegue a Azure (solo main)
 #
 # Estrategia de ramas: dev (integración) -> qa (validación) -> main
-# (producción). Los Pull Requests y los pushes a dev y qa ejecutan
-# Build, Test y CalidadSonar; Deploy a Azure solo se ejecuta al fusionar
-# a main. Si el quality gate de SonarCloud falla, el pipeline falla y no
-# se despliega.
+# (producción).
+#   - Pull Requests hacia dev, qa y main: Build, Test, CalidadSonar y
+#     PruebasAPI.
+#   - Pushes a dev y qa (al fusionar un PR): Build, Test y PruebasAPI.
+#     CalidadSonar se omite porque el plan gratuito de SonarCloud solo
+#     analiza main y los Pull Requests; ese código ya pasó el quality gate
+#     en su PR.
+#   - Push a main: todas las etapas, incluido Deploy a Azure.
+# Si una etapa falla (incluido el quality gate), las siguientes no corren
+# y no se despliega.
 
 trigger:
   branches:
@@ -201,6 +207,13 @@ stages:
   - stage: CalidadSonar
     displayName: 'Análisis estático (SonarCloud) y quality gate'
     dependsOn: Test
+    # El plan gratuito de SonarCloud solo analiza main y los Pull Requests:
+    # en los pushes a dev y qa la etapa se omite (ese código ya pasó el
+    # quality gate en su PR).
+    condition: >-
+      and(succeeded(),
+          or(eq(variables['Build.Reason'], 'PullRequest'),
+             eq(variables['Build.SourceBranch'], 'refs/heads/main')))
     jobs:
       - job: SonarCloud
         displayName: 'Análisis de SonarCloud y verificación del quality gate'
@@ -267,7 +280,14 @@ stages:
   # ------------------------------------------------------------
   - stage: PruebasAPI
     displayName: 'Pruebas de API (Postman + Newman)'
-    dependsOn: CalidadSonar
+    dependsOn:
+      - Test
+      - CalidadSonar
+    # Corre si las pruebas unitarias pasaron y SonarCloud pasó o se omitió
+    # (pushes a dev y qa); nunca si el quality gate falló.
+    condition: >-
+      and(eq(dependencies.Test.result, 'Succeeded'),
+          in(dependencies.CalidadSonar.result, 'Succeeded', 'Skipped'))
     jobs:
       - job: Newman
         displayName: 'Colección de Postman con Newman sobre docker compose'
