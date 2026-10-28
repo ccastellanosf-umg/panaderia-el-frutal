@@ -109,7 +109,7 @@ El equipo trabaja con **GitHub Flow**: la rama `main` se mantiene siempre desple
 
 - **Azure Boards**: backlog organizado en Epics → Features → User Stories.
 - **Azure Repos**: repositorio espejo, sincronizado con este repositorio de GitHub.
-- **Azure Pipelines**: `azure-pipelines.yml`, con las etapas Build, Test y Deploy.
+- **Azure Pipelines**: `azure-pipelines.yml`, con las etapas Build, Test, CalidadSonar, PruebasAPI y Deploy (ver "Calidad: pruebas, análisis estático y pipeline").
 - **Azure Test Plans**: casos de prueba manual complementarios a las pruebas automáticas.
 
 ## Despliegue en Azure
@@ -122,6 +122,38 @@ Los nombres, la suscripción y la región se definen en `scripts/azure-config.sh
 4. `npm run test:e2e:azure` ejecuta las pruebas E2E contra el despliegue.
 
 **Monitoreo.** Cada microservicio envía telemetría a Application Insights cuando existe `APPLICATIONINSIGHTS_CONNECTION_STRING` (el despliegue la configura; en local y en CI queda desactivada). `deploy-azure.sh` activa además el Health check de App Service sobre `/health` y una alerta por servicio (`HealthCheckStatus` < 100 durante 5 min) que avisa por correo. Costo: se usa la ingesta gratuita de 5 GB/mes con un tope diario de 0.1 GB y retención de 30 días; no se crean pruebas web de disponibilidad de Application Insights para evitar unos USD 40/mes.
+
+## Calidad: pruebas, análisis estático y pipeline
+
+### Pruebas unitarias y cobertura
+
+Backend (Jest + supertest; las pruebas viven en `tests/` y se ejecutan desde cada servicio, que aporta sus dependencias):
+
+```bash
+npm ci                                # una vez, en la raíz: herramientas compartidas de pruebas
+cd src/auth && npm ci                 # dependencias del servicio (auth y catalogo: luego npx prisma generate)
+JWT_SECRET=clave-de-pruebas-no-productiva npx jest auth.test.js --roots ../../tests
+```
+
+Para los otros servicios, reemplazar `auth` por `catalogo`, `pedidos` o `pagos`. Las pruebas no necesitan base de datos: PostgreSQL, las notificaciones y los servicios externos se reemplazan por dobles de prueba.
+
+Frontend (Vitest + Testing Library): `cd src/frontend && npm ci && npm test`.
+
+Cobertura: agregar `--coverage` al comando de Jest, o `npm run test:coverage` en el frontend. Cada servicio mide `app.js`, `lib/`, `middlewares/` y `routes/` (configurado en `src/<servicio>/jest.config.js`; se excluye `index.js`, que solo arranca el servidor). El reporte queda en `coverage/` (texto en consola y `lcov.info`).
+
+### Análisis estático (SonarCloud)
+
+El proyecto se analiza en SonarCloud: https://sonarcloud.io/project/overview?id=ccastellanosf-umg_panaderia-el-frutal. La configuración está en `sonar-project.properties` y el análisis corre dentro del pipeline (etapa CalidadSonar) en los Pull Requests y en `main`; recibe la cobertura de la etapa de pruebas y, si el quality gate no se cumple, el pipeline falla y no se despliega.
+
+### Pipeline (Azure Pipelines)
+
+Etapas en orden: Build → Test (pruebas unitarias con cobertura) → CalidadSonar → PruebasAPI (Postman + Newman sobre un stack desechable de docker compose) → Deploy (solo `main`). Se ejecuta automáticamente en cada Pull Request y en cada push a `dev`, `qa` y `main`; también se puede lanzar a mano desde Azure DevOps → Pipelines → *Run pipeline*.
+
+El agente es self-hosted (pool `Default`) y necesita Node.js 20, Java 17 (escáner de SonarCloud, con `JAVA_HOME` en el `.env` del agente) y Docker Desktop en ejecución (etapa PruebasAPI).
+
+### Pruebas de carga (k6)
+
+`npm run test:carga:azure` ejecuta `tests/carga/carga.k6.js` contra Azure: rampa a 50 usuarios virtuales en 1 minuto, 5 minutos sostenidos, sobre `GET /productos` y `GET /pedidos/mios`. Requiere k6 y `az login`; toma las credenciales del cliente semilla de `~/.elfrutal/azure-g3.secrets`. Cada corrida deja `resumen.md`, `resumen.json` y `reporte.html` en su propia carpeta de `test-results/carga/`.
 
 ## Licencia y uso académico
 
