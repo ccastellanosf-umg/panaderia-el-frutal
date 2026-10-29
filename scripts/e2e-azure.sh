@@ -24,6 +24,19 @@ export DATABASE_URL
 # SEC-03 checks CORS against the origin the services actually allow.
 CORS_PERMITIDO="https://$(az staticwebapp show -n "$SWA" -g "$RG" --query defaultHostname -o tsv)"
 export CORS_PERMITIDO
+# Production seed users do not use the README passwords: load them from
+# the local secrets file (or the environment) and stop if any is missing.
+SECRETS_FILE="${SECRETS_FILE:-$HOME/.elfrutal/azure-g3.secrets}"
+# shellcheck disable=SC1090
+[[ -f "$SECRETS_FILE" ]] && source "$SECRETS_FILE"
+faltantes=()
+for var in SEED_ADMIN_PASSWORD SEED_VENTAS_PASSWORD SEED_PRODUCCION_PASSWORD SEED_CLIENTE_PASSWORD; do
+  if [[ -n "${!var:-}" ]]; then export "${var?}"; else faltantes+=("$var"); fi
+done
+if (( ${#faltantes[@]} )); then
+  echo "Missing variables (see $SECRETS_FILE): ${faltantes[*]}"
+  exit 1
+fi
 
 # Wake up the App Services first: a cold start can exceed the test timeout.
 for url in "$AUTH_URL" "$CATALOGO_URL" "$PEDIDOS_URL" "$PAGOS_URL"; do

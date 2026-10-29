@@ -27,6 +27,10 @@
 // service DNS names instead of localhost).
 // ============================================================
 
+// Commands repeated across stages, defined once.
+def NPM_CI = 'npm ci'
+def PRISMA_GENERATE = 'npx prisma generate'
+
 pipeline {
     agent any
 
@@ -64,37 +68,37 @@ pipeline {
                 stage('Build auth') {
                     steps {
                         dir('src/auth') {
-                            sh 'npm ci'
-                            sh 'npx prisma generate'
+                            sh NPM_CI
+                            sh PRISMA_GENERATE
                         }
                     }
                 }
                 stage('Build catalogo') {
                     steps {
                         dir('src/catalogo') {
-                            sh 'npm ci'
-                            sh 'npx prisma generate'
+                            sh NPM_CI
+                            sh PRISMA_GENERATE
                         }
                     }
                 }
                 stage('Build pedidos') {
                     steps {
                         dir('src/pedidos') {
-                            sh 'npm ci'
+                            sh NPM_CI
                         }
                     }
                 }
                 stage('Build pagos') {
                     steps {
                         dir('src/pagos') {
-                            sh 'npm ci'
+                            sh NPM_CI
                         }
                     }
                 }
                 stage('Build frontend') {
                     steps {
                         dir('src/frontend') {
-                            sh 'npm ci'
+                            sh NPM_CI
                             sh 'npm run build'
                         }
                     }
@@ -104,7 +108,7 @@ pipeline {
                 // same folder from the parallel unit-test stages would race.
                 stage('Install test tooling') {
                     steps {
-                        sh 'npm ci'
+                        sh NPM_CI
                     }
                 }
             }
@@ -117,7 +121,7 @@ pipeline {
                         stage('Unit tests auth') {
                             steps {
                                 dir('src/auth') {
-                                    sh 'npx prisma generate'
+                                    sh PRISMA_GENERATE
                                     sh '''
                                         JEST_JUNIT_OUTPUT_DIR=../../test-results \
                                         JEST_JUNIT_OUTPUT_NAME=unit-auth.xml \
@@ -136,7 +140,7 @@ pipeline {
                         stage('Unit tests catalogo') {
                             steps {
                                 dir('src/catalogo') {
-                                    sh 'npx prisma generate'
+                                    sh PRISMA_GENERATE
                                     sh '''
                                         JEST_JUNIT_OUTPUT_DIR=../../test-results \
                                         JEST_JUNIT_OUTPUT_NAME=unit-catalogo.xml \

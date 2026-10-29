@@ -8,6 +8,7 @@ const verificarToken = require("../middlewares/verificarToken");
 const prisma = require("../lib/prisma");
 const { revocar } = require("../lib/tokensRevocados");
 const { limiteLogin } = require("../lib/limiteLogin");
+const { sanitizarLog } = require("../lib/log");
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -65,13 +66,13 @@ router.post("/login", limiteLogin, async (req, res) => {
     const correoNormalizado = String(correo).trim().toLowerCase();
     const usuario = await prisma.usuario.findUnique({ where: { correo: correoNormalizado } });
     if (!usuario) {
-      console.warn(`Intento de login fallido para correo: ${correo}`);
+      console.warn(`Intento de login fallido para correo: ${sanitizarLog(correo)}`);
       return res.status(401).json({ error: "Credenciales inválidas." });
     }
 
     const coincide = await bcrypt.compare(contrasena, usuario.contrasenaHash);
     if (!coincide) {
-      console.warn(`Intento de login fallido para correo: ${correo}`);
+      console.warn(`Intento de login fallido para correo: ${sanitizarLog(correo)}`);
       return res.status(401).json({ error: "Credenciales inválidas." });
     }
 

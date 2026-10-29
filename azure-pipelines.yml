@@ -2,22 +2,43 @@
 # azure-pipelines.yml
 # Transformación Digital de Panadería El Frutal — Grupo 3
 # ============================================================
-# Pipeline básico requerido para esta entrega: Build + Test + Deploy
-# sobre los cuatro microservicios (auth, catalogo, pedidos, pagos),
-# todos completamente implementados en la Fase 1.
+# Pipeline de integración y despliegue continuo sobre los cuatro
+# microservicios (auth, catalogo, pedidos, pagos) y el frontend.
 #
-# Estrategia de ramas: GitHub Flow. Los Pull Requests disparan
-# únicamente Build y Test; Deploy solo se ejecuta al fusionar a main.
+# Orden de las etapas:
+#   1. Build           instalación y compilación
+#   2. Test            pruebas unitarias con cobertura (Jest y Vitest)
+#   3. CalidadSonar    análisis estático en SonarCloud y quality gate
+#   4. PruebasAPI      pruebas de API (Postman + Newman) sobre un stack
+#                      desechable de docker compose
+#   5. Deploy          despliegue a Azure (solo main)
+#
+# Estrategia de ramas: dev (integración) -> qa (validación) -> main
+# (producción).
+#   - Pull Requests hacia dev, qa y main: Build, Test, CalidadSonar y
+#     PruebasAPI.
+#   - Pushes a dev y qa (al fusionar un PR): Build, Test y PruebasAPI.
+#     CalidadSonar se omite porque el plan gratuito de SonarCloud solo
+#     analiza main y los Pull Requests; ese código ya pasó el quality gate
+#     en su PR.
+#   - Push a main: todas las etapas, incluido Deploy a Azure.
+# Si una etapa falla (incluido el quality gate), las siguientes no corren
+# y no se despliega.
 
 trigger:
+  batch: true
   branches:
     include:
       - main
+      - qa
+      - dev
 
 pr:
   branches:
     include:
       - main
+      - qa
+      - dev
 
 variables:
   azureSubscription: 'Conexion-ElFrutal-G3'
@@ -26,6 +47,10 @@ variables:
   staticWebAppName: 'swa-elfrutal-frontend-g3'
   frontendDirectory: 'src/frontend'
 
+# Dependencias: npm ci --ignore-scripts evita que un paquete ejecute
+# scripts de instalación durante el build, y las herramientas se ejecutan
+# desde node_modules/.bin (nunca con npx, que podría descargarlas).
+# Prisma Client se genera de forma explícita.
 stages:
 
   # ------------------------------------------------------------
@@ -53,16 +78,16 @@ stages:
               serviceName: 'pagos'
               usaPrisma: 'false'
         steps:
-          - task: NodeTool@0
+          - task: UseNode@1
             inputs:
-              versionSpec: '20.x'
+              version: '20.x'
             displayName: 'Instalar Node.js 20'
 
-          - script: npm ci
+          - script: npm ci --ignore-scripts
             workingDirectory: 'src/$(serviceName)'
             displayName: 'Instalar dependencias de $(serviceName)'
 
-          - script: npx prisma generate
+          - script: ./node_modules/.bin/prisma generate
             workingDirectory: 'src/$(serviceName)'
             condition: eq(variables['usaPrisma'], 'true')
             displayName: 'Generar cliente Prisma de $(serviceName)'
@@ -72,18 +97,14 @@ stages:
         pool:
           name: 'Default'
         steps:
-          - task: NodeTool@0
+          - task: UseNode@1
             inputs:
-              versionSpec: '20.x'
+              version: '20.x'
             displayName: 'Instalar Node.js 20'
 
-          - script: npm ci
+          - script: npm ci --ignore-scripts
             workingDirectory: '$(frontendDirectory)'
             displayName: 'Instalar dependencias del frontend'
-
-          - script: npm test
-            workingDirectory: '$(frontendDirectory)'
-            displayName: 'Ejecutar pruebas del frontend (Vitest)'
 
           - script: npm run build
             workingDirectory: '$(frontendDirectory)'
@@ -124,35 +145,179 @@ stages:
               serviceName: 'pagos'
               usaPrisma: 'false'
         steps:
-          - task: NodeTool@0
+          - task: UseNode@1
             inputs:
-              versionSpec: '20.x'
+              version: '20.x'
 
-          - script: npm ci
+          - script: npm ci --ignore-scripts
             workingDirectory: 'src/$(serviceName)'
             displayName: 'Instalar dependencias de $(serviceName)'
 
-          - script: npx prisma generate
+          - script: ./node_modules/.bin/prisma generate
             workingDirectory: 'src/$(serviceName)'
             condition: eq(variables['usaPrisma'], 'true')
             displayName: 'Generar cliente Prisma de $(serviceName)'
 
-          - script: npm --prefix ../.. ci
+          - script: npm --prefix ../.. ci --ignore-scripts
             workingDirectory: 'src/$(serviceName)'
             displayName: 'Instalar dependencias compartidas de pruebas (supertest)'
 
-          - script: npx jest $(serviceName).test.js --roots ../../tests --ci --forceExit
+          - script: ./node_modules/.bin/jest $(serviceName).test.js --roots ../../tests --ci --forceExit --coverage
             workingDirectory: 'src/$(serviceName)'
-            displayName: 'Ejecutar pruebas de $(serviceName)'
+            displayName: 'Ejecutar pruebas de $(serviceName) con cobertura'
             env:
               JWT_SECRET: 'clave-de-pruebas-no-productiva'
 
+          # Jest genera rutas relativas al servicio (SF:app.js); SonarCloud
+          # las necesita relativas a la raíz del repositorio. perl -pi es
+          # portable (el agente es macOS: sed -i de GNU no funciona).
+          - script: perl -pi -e 's#^SF:#SF:src/$(serviceName)/#' coverage/lcov.info
+            workingDirectory: 'src/$(serviceName)'
+            displayName: 'Reescribir rutas de cobertura de $(serviceName)'
+
+          - publish: 'src/$(serviceName)/coverage/lcov.info'
+            artifact: 'coverage-$(serviceName)'
+            displayName: 'Publicar cobertura de $(serviceName)'
+
+      - job: UnitTestsFrontend
+        displayName: 'Pruebas unitarias (Vitest) del frontend'
+        pool:
+          name: 'Default'
+        steps:
+          - task: UseNode@1
+            inputs:
+              version: '20.x'
+            displayName: 'Instalar Node.js 20'
+
+          - script: npm ci --ignore-scripts
+            workingDirectory: '$(frontendDirectory)'
+            displayName: 'Instalar dependencias del frontend'
+
+          - script: npm run test:coverage
+            workingDirectory: '$(frontendDirectory)'
+            displayName: 'Ejecutar pruebas del frontend con cobertura'
+
+          # Mismo ajuste de rutas que en los microservicios (ver arriba).
+          - script: perl -pi -e 's#^SF:#SF:src/frontend/#' coverage/lcov.info
+            workingDirectory: '$(frontendDirectory)'
+            displayName: 'Reescribir rutas de cobertura del frontend'
+
+          - publish: '$(frontendDirectory)/coverage/lcov.info'
+            artifact: 'coverage-frontend'
+            displayName: 'Publicar cobertura del frontend'
+
   # ------------------------------------------------------------
-  # ETAPA 3: DEPLOY (solo main; solo servicios del Sprint 1)
+  # ETAPA 3: CALIDAD — análisis estático en SonarCloud y quality gate
+  # ------------------------------------------------------------
+  - stage: CalidadSonar
+    displayName: 'Análisis estático (SonarCloud) y quality gate'
+    dependsOn: Test
+    # El plan gratuito de SonarCloud solo analiza main y los Pull Requests:
+    # en los pushes a dev y qa la etapa se omite (ese código ya pasó el
+    # quality gate en su PR).
+    condition: >-
+      and(succeeded(),
+          or(eq(variables['Build.Reason'], 'PullRequest'),
+             eq(variables['Build.SourceBranch'], 'refs/heads/main')))
+    jobs:
+      - job: SonarCloud
+        displayName: 'Análisis de SonarCloud y verificación del quality gate'
+        pool:
+          name: 'Default'
+        steps:
+          # fetchDepth 0: SonarCloud necesita el historial completo para
+          # atribuir el código nuevo y los blames correctamente.
+          - checkout: self
+            fetchDepth: 0
+
+          # Los reportes se descargan a $(Pipeline.Workspace)/coverage/<nombre>
+          # y Sonar los lee directamente desde ahí (sus rutas SF: ya son
+          # relativas a la raíz del repositorio), sin copiarlos al código.
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Descargar cobertura de auth'
+            inputs:
+              artifact: 'coverage-auth'
+              path: '$(Pipeline.Workspace)/coverage/auth'
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Descargar cobertura de catalogo'
+            inputs:
+              artifact: 'coverage-catalogo'
+              path: '$(Pipeline.Workspace)/coverage/catalogo'
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Descargar cobertura de pedidos'
+            inputs:
+              artifact: 'coverage-pedidos'
+              path: '$(Pipeline.Workspace)/coverage/pedidos'
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Descargar cobertura de pagos'
+            inputs:
+              artifact: 'coverage-pagos'
+              path: '$(Pipeline.Workspace)/coverage/pagos'
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Descargar cobertura del frontend'
+            inputs:
+              artifact: 'coverage-frontend'
+              path: '$(Pipeline.Workspace)/coverage/frontend'
+
+          - task: SonarCloudPrepare@3.4.3
+            displayName: 'Preparar análisis de SonarCloud'
+            inputs:
+              SonarCloud: 'SonarCloud-ElFrutal'
+              organization: 'ccastellanosf-umg'
+              scannerMode: 'cli'
+              configMode: 'file'   # lee sonar-project.properties
+              extraProperties: |
+                sonar.javascript.lcov.reportPaths=$(Pipeline.Workspace)/coverage/auth/lcov.info,$(Pipeline.Workspace)/coverage/catalogo/lcov.info,$(Pipeline.Workspace)/coverage/pedidos/lcov.info,$(Pipeline.Workspace)/coverage/pagos/lcov.info,$(Pipeline.Workspace)/coverage/frontend/lcov.info
+                sonar.qualitygate.wait=true
+
+          # Con sonar.qualitygate.wait=true, este paso falla el job si el
+          # quality gate no se cumple.
+          - task: SonarCloudAnalyze@3.4.3
+            displayName: 'Ejecutar análisis de SonarCloud'
+
+          - task: SonarCloudPublish@3.4.3
+            displayName: 'Publicar resultado del quality gate'
+            inputs:
+              pollingTimeoutSec: '300'
+
+  # ------------------------------------------------------------
+  # ETAPA 4: PRUEBAS DE API — colección de Postman ejecutada con Newman
+  # ------------------------------------------------------------
+  - stage: PruebasAPI
+    displayName: 'Pruebas de API (Postman + Newman)'
+    dependsOn:
+      - Test
+      - CalidadSonar
+    # Corre si las pruebas unitarias pasaron y SonarCloud pasó o se omitió
+    # (pushes a dev y qa); nunca si el quality gate falló.
+    condition: >-
+      and(eq(dependencies.Test.result, 'Succeeded'),
+          in(dependencies.CalidadSonar.result, 'Succeeded', 'Skipped'))
+    jobs:
+      - job: Newman
+        displayName: 'Colección de Postman con Newman sobre docker compose'
+        pool:
+          name: 'Default'
+        steps:
+          # El script levanta un stack desechable, corre Newman dentro de
+          # la red de compose y siempre lo destruye al terminar.
+          - script: bash scripts/ci/api-tests.sh
+            displayName: 'Ejecutar las pruebas de API'
+
+          - task: PublishTestResults@2
+            displayName: 'Publicar resultados de las pruebas de API'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: 'test-results/api/newman-junit.xml'
+              testRunTitle: 'Pruebas de API (Newman)'
+
+  # ------------------------------------------------------------
+  # ETAPA 5: DEPLOY (solo main; solo servicios del Sprint 1)
   # ------------------------------------------------------------
   - stage: Deploy
     displayName: 'Despliegue a Azure (los cuatro microservicios)'
-    dependsOn: Test
+    dependsOn: PruebasAPI
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
       - job: DeployMicroservicios

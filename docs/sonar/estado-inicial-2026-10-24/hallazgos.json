@@ -1,0 +1,2021 @@
+{
+  "total": 224,
+  "issues": [
+    {
+      "key": "AaFIe8zFUY3IzV2lGpCV",
+      "rule": "javascript:S1788",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/auth/lib/telemetria.js",
+      "line": 9,
+      "message": "Move this default parameter last, so callers can omit it instead of passing \"undefined\"."
+    },
+    {
+      "key": "AaFIe8UwUY3IzV2lGpCT",
+      "rule": "javascript:S1788",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/catalogo/lib/telemetria.js",
+      "line": 9,
+      "message": "Move this default parameter last, so callers can omit it instead of passing \"undefined\"."
+    },
+    {
+      "key": "AaFIe8tqUY3IzV2lGpCU",
+      "rule": "javascript:S1788",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pagos/lib/telemetria.js",
+      "line": 9,
+      "message": "Move this default parameter last, so callers can omit it instead of passing \"undefined\"."
+    },
+    {
+      "key": "AaFIe87rUY3IzV2lGpCW",
+      "rule": "javascript:S1788",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/lib/telemetria.js",
+      "line": 9,
+      "message": "Move this default parameter last, so callers can omit it instead of passing \"undefined\"."
+    },
+    {
+      "key": "AaFIPTjFW1pCEb9gxPtm",
+      "rule": "javascript:S7726",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:tests/carga/carga.k6.js",
+      "line": 56,
+      "message": "The function should be named."
+    },
+    {
+      "key": "AaFIPTjFW1pCEb9gxPtn",
+      "rule": "javascript:S6582",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:tests/carga/carga.k6.js",
+      "line": 81,
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    {
+      "key": "AaFHwZViEw3kXaeJPQMB",
+      "rule": "shelldre:S7682",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-config.sh",
+      "line": 41,
+      "message": "Add an explicit return statement at the end of the function."
+    },
+    {
+      "key": "AaFHwZViEw3kXaeJPQMD",
+      "rule": "shelldre:S7682",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-config.sh",
+      "line": 42,
+      "message": "Add an explicit return statement at the end of the function."
+    },
+    {
+      "key": "AaFHwZViEw3kXaeJPQMC",
+      "rule": "shelldre:S131",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-config.sh",
+      "line": 43,
+      "message": "Add a default case (*) to handle unexpected values."
+    },
+    {
+      "key": "AaEiZ5hoE3G1IiUCHUMr",
+      "rule": "javascript:S6594",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/auth/lib/limiteLogin.js",
+      "line": 13,
+      "message": "Use the \"RegExp.exec()\" method instead."
+    },
+    {
+      "key": "AaEiZ5hoE3G1IiUCHUMs",
+      "rule": "javascript:S6594",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/auth/lib/limiteLogin.js",
+      "line": 15,
+      "message": "Use the \"RegExp.exec()\" method instead."
+    },
+    {
+      "key": "AaEiZ52SE3G1IiUCHUM8",
+      "rule": "plsql:S1192",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/roles/usuario_app.sql",
+      "line": 13,
+      "message": "Define a constant instead of duplicating this literal 3 times."
+    },
+    {
+      "key": "AaEiZ5hoE3G1IiUCHUMt",
+      "rule": "javascript:S6582",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/auth/lib/limiteLogin.js",
+      "line": 27,
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    {
+      "key": "AaEiZ5qkE3G1IiUCHUMx",
+      "rule": "javascript:S7737",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:tests/helpers/seguridad.js",
+      "line": 21,
+      "message": "Do not use an object literal as default for parameter `opciones`."
+    },
+    {
+      "key": "AaDhJcUh2339CDgU2-LT",
+      "rule": "groovydre:S134",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:Jenkinsfile",
+      "line": 49,
+      "message": "Refactor this code to not nest more than 3 control flow statements."
+    },
+    {
+      "key": "AaDhJcUh2339CDgU2-LU",
+      "rule": "groovydre:S134",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:Jenkinsfile",
+      "line": 63,
+      "message": "Refactor this code to not nest more than 3 control flow statements."
+    },
+    {
+      "key": "AaDhJcUh2339CDgU2-LY",
+      "rule": "groovydre:S1192",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:Jenkinsfile",
+      "line": 107,
+      "message": "Define a constant instead of using the literal 'npm ci' 6 times."
+    },
+    {
+      "key": "AaDhJcUh2339CDgU2-LV",
+      "rule": "groovydre:S134",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:Jenkinsfile",
+      "line": 114,
+      "message": "Refactor this code to not nest more than 3 control flow statements."
+    },
+    {
+      "key": "AaDhJcUh2339CDgU2-LZ",
+      "rule": "groovydre:S1192",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:Jenkinsfile",
+      "line": 139,
+      "message": "Define a constant instead of using the literal 'npx prisma generate' 4 times."
+    },
+    {
+      "key": "AaDhJcUh2339CDgU2-LW",
+      "rule": "groovydre:S134",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:Jenkinsfile",
+      "line": 230,
+      "message": "Refactor this code to not nest more than 3 control flow statements."
+    },
+    {
+      "key": "AaDhJcUh2339CDgU2-LX",
+      "rule": "groovydre:S134",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:Jenkinsfile",
+      "line": 233,
+      "message": "Refactor this code to not nest more than 3 control flow statements."
+    },
+    {
+      "key": "AaDhJcUG2339CDgU2-LO",
+      "rule": "docker:S6471",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:docker/db/Dockerfile",
+      "line": 21,
+      "message": "The \"postgres\" image runs with \"root\" as the default user. Make sure it is safe here."
+    },
+    {
+      "key": "AaDhJcUS2339CDgU2-LP",
+      "rule": "docker:S6471",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:docker/e2e/Dockerfile",
+      "line": 9,
+      "message": "The \"node\" image runs with \"root\" as the default user. Make sure it is safe here."
+    },
+    {
+      "key": "AaDhJcUS2339CDgU2-LQ",
+      "rule": "docker:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:docker/e2e/Dockerfile",
+      "line": 14,
+      "message": "Omitting \"--ignore-scripts\" allows lifecycle scripts to run during package installation."
+    },
+    {
+      "key": "AaDhJcUS2339CDgU2-LR",
+      "rule": "docker:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:docker/e2e/Dockerfile",
+      "line": 20,
+      "message": "\"npx\" can install packages on-demand and run their lifecycle scripts."
+    },
+    {
+      "key": "AaDhJcUS2339CDgU2-LS",
+      "rule": "docker:S8543",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:docker/e2e/Dockerfile",
+      "line": 20,
+      "message": "Define exact package version to avoid installing unverified releases."
+    },
+    {
+      "key": "AaDhJcPz2339CDgU2-LL",
+      "rule": "shelldre:S131",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/ci/deploy-staging.sh",
+      "line": 33,
+      "message": "Add a default case (*) to handle unexpected values."
+    },
+    {
+      "key": "AaDhJcPz2339CDgU2-LD",
+      "rule": "shell:S5332",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/ci/deploy-staging.sh",
+      "line": 48,
+      "message": "Make sure that using clear-text protocols is safe here."
+    },
+    {
+      "key": "AaDhJcPz2339CDgU2-LE",
+      "rule": "shell:S5332",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/ci/deploy-staging.sh",
+      "line": 52,
+      "message": "Make sure that using clear-text protocols is safe here."
+    },
+    {
+      "key": "AaDhJcPz2339CDgU2-LM",
+      "rule": "shelldre:S7688",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/ci/deploy-staging.sh",
+      "line": 55,
+      "message": "Use '[[' instead of '[' for conditional tests. The '[[' construct is safer and more feature-rich."
+    },
+    {
+      "key": "AaDhJcPz2339CDgU2-LF",
+      "rule": "shell:S5332",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/ci/deploy-staging.sh",
+      "line": 56,
+      "message": "Make sure that using clear-text protocols is safe here."
+    },
+    {
+      "key": "AaDhJcPz2339CDgU2-LG",
+      "rule": "shell:S5332",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/ci/deploy-staging.sh",
+      "line": 58,
+      "message": "Make sure that using clear-text protocols is safe here."
+    },
+    {
+      "key": "AaDhJcPz2339CDgU2-LN",
+      "rule": "shelldre:S7688",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/ci/deploy-staging.sh",
+      "line": 63,
+      "message": "Use '[[' instead of '[' for conditional tests. The '[[' construct is safer and more feature-rich."
+    },
+    {
+      "key": "AaDhJcPz2339CDgU2-LH",
+      "rule": "shell:S5332",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/ci/deploy-staging.sh",
+      "line": 69,
+      "message": "Make sure that using clear-text protocols is safe here."
+    },
+    {
+      "key": "AaDhJcPz2339CDgU2-LI",
+      "rule": "shell:S5332",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/ci/deploy-staging.sh",
+      "line": 70,
+      "message": "Make sure that using clear-text protocols is safe here."
+    },
+    {
+      "key": "AaDhJcPz2339CDgU2-LJ",
+      "rule": "shell:S5332",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/ci/deploy-staging.sh",
+      "line": 71,
+      "message": "Make sure that using clear-text protocols is safe here."
+    },
+    {
+      "key": "AaDhJcPz2339CDgU2-LK",
+      "rule": "shell:S5332",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/ci/deploy-staging.sh",
+      "line": 72,
+      "message": "Make sure that using clear-text protocols is safe here."
+    },
+    {
+      "key": "AaEiZ5tsE3G1IiUCHUM7",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 188,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4sx_",
+      "rule": "jssecurity:S5145",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 218,
+      "message": "Log Injection via unsanitized user input"
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4sx0",
+      "rule": "javascript:S7772",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 12,
+      "message": "Prefer `node:fs` over `fs`."
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4sx1",
+      "rule": "javascript:S7772",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 13,
+      "message": "Prefer `node:path` over `path`."
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4syA",
+      "rule": "jssecurity:S8476",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 25,
+      "message": "Client-Side Request Forgery via unsanitized user input"
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4syB",
+      "rule": "jssecurity:S7044",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 25,
+      "message": "API Traversal via unsanitized user input"
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4sx2",
+      "rule": "javascript:S3358",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 28,
+      "message": "Extract this nested ternary operation into an independent statement."
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4sx3",
+      "rule": "javascript:S7781",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 55,
+      "message": "Prefer `String#replaceAll()` over `String#replace()`."
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4sx4",
+      "rule": "javascript:S7781",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 55,
+      "message": "Prefer `String#replaceAll()` over `String#replace()`."
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4sx5",
+      "rule": "javascript:S7781",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 55,
+      "message": "Prefer `String#replaceAll()` over `String#replace()`."
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4sx6",
+      "rule": "javascript:S7755",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 73,
+      "message": "Prefer `.at(…)` over `[….length - index]`."
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4sx7",
+      "rule": "javascript:S6594",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 75,
+      "message": "Use the \"RegExp.exec()\" method instead."
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4sx-",
+      "rule": "jssecurity:S5145",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 101,
+      "message": "Log Injection via unsanitized user input"
+    },
+    {
+      "key": "AaEiZ5tsE3G1IiUCHUMy",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 105,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4sx8",
+      "rule": "javascript:S6594",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 119,
+      "message": "Use the \"RegExp.exec()\" method instead."
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4sx9",
+      "rule": "javascript:S6594",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 120,
+      "message": "Use the \"RegExp.exec()\" method instead."
+    },
+    {
+      "key": "AaEiZ5tsE3G1IiUCHUMz",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 123,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaEiZ5tsE3G1IiUCHUM0",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 125,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaEiZ5tsE3G1IiUCHUM1",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 138,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaEiZ5tsE3G1IiUCHUM2",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 154,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaEiZ5tsE3G1IiUCHUM3",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 158,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaEiZ5tsE3G1IiUCHUM4",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 159,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaEiZ5tsE3G1IiUCHUM5",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 163,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaEiZ5tsE3G1IiUCHUM6",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 167,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaDZ3QjfO2tvtBRZ4syC",
+      "rule": "jssecurity:S5145",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/cargar-azure-devops.js",
+      "line": 171,
+      "message": "Log Injection via unsanitized user input"
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxl",
+      "rule": "javascript:S7772",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 9,
+      "message": "Prefer `node:fs` over `fs`."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxm",
+      "rule": "javascript:S7772",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 10,
+      "message": "Prefer `node:path` over `path`."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxn",
+      "rule": "javascript:S7781",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 74,
+      "message": "Prefer `String#replaceAll()` over `String#replace()`."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxo",
+      "rule": "javascript:S6594",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 88,
+      "message": "Use the \"RegExp.exec()\" method instead."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxp",
+      "rule": "javascript:S3358",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 91,
+      "message": "Extract this nested ternary operation into an independent statement."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxq",
+      "rule": "javascript:S7780",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 103,
+      "message": "`String.raw` should be used to avoid escaping `\\`."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxr",
+      "rule": "javascript:S7781",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 108,
+      "message": "Prefer `String#replaceAll()` over `String#replace()`."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxs",
+      "rule": "javascript:S7781",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 113,
+      "message": "Prefer `String#replaceAll()` over `String#replace()`."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxt",
+      "rule": "javascript:S7781",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 117,
+      "message": "Prefer `String#replaceAll()` over `String#replace()`."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxu",
+      "rule": "javascript:S7781",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 125,
+      "message": "Prefer `String#replaceAll()` over `String#replace()`."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxv",
+      "rule": "javascript:S7781",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 126,
+      "message": "Prefer `String#replaceAll()` over `String#replace()`."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxw",
+      "rule": "javascript:S7781",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 126,
+      "message": "Prefer `String#replaceAll()` over `String#replace()`."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxx",
+      "rule": "javascript:S7781",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 126,
+      "message": "Prefer `String#replaceAll()` over `String#replace()`."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxy",
+      "rule": "javascript:S7781",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 126,
+      "message": "Prefer `String#replaceAll()` over `String#replace()`."
+    },
+    {
+      "key": "AaDZ3QjLO2tvtBRZ4sxz",
+      "rule": "javascript:S7778",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/azure-devops/generar-csv.js",
+      "line": 141,
+      "message": "Merge these Array#push() calls into a single call with multiple arguments."
+    },
+    {
+      "key": "AaDZ3QidO2tvtBRZ4sxg",
+      "rule": "plsql:S1192",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 98,
+      "message": "Define a constant instead of duplicating this literal 3 times."
+    },
+    {
+      "key": "AaDZ3QePO2tvtBRZ4sxb",
+      "rule": "javascript:S6582",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/auth/app.js",
+      "line": 24,
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    {
+      "key": "AaDZ3QdqO2tvtBRZ4sxR",
+      "rule": "javascript:S7755",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/auth/lib/asyncErrors.js",
+      "line": 33,
+      "message": "Prefer `.at(…)` over `[….length - index]`."
+    },
+    {
+      "key": "AaDZ3QVXO2tvtBRZ4swv",
+      "rule": "javascript:S6582",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/catalogo/app.js",
+      "line": 20,
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    {
+      "key": "AaDZ3QUPO2tvtBRZ4swp",
+      "rule": "javascript:S7755",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/catalogo/lib/asyncErrors.js",
+      "line": 33,
+      "message": "Prefer `.at(…)` over `[….length - index]`."
+    },
+    {
+      "key": "AaDZ3QW7O2tvtBRZ4sw0",
+      "rule": "javascript:S6582",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pagos/app.js",
+      "line": 24,
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    {
+      "key": "AaDZ3QV1O2tvtBRZ4sww",
+      "rule": "javascript:S7755",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pagos/lib/asyncErrors.js",
+      "line": 33,
+      "message": "Prefer `.at(…)` over `[….length - index]`."
+    },
+    {
+      "key": "AaDZ3QbjO2tvtBRZ4sxI",
+      "rule": "javascript:S6582",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/app.js",
+      "line": 24,
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    {
+      "key": "AaDZ3QbSO2tvtBRZ4sxF",
+      "rule": "javascript:S7755",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/lib/asyncErrors.js",
+      "line": 33,
+      "message": "Prefer `.at(…)` over `[….length - index]`."
+    },
+    {
+      "key": "AaDZ3QcmO2tvtBRZ4sxK",
+      "rule": "javascript:S3696",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/routes/reportes.routes.js",
+      "line": 31,
+      "message": "Expected an error object to be thrown."
+    },
+    {
+      "key": "AaDZ3QcmO2tvtBRZ4sxL",
+      "rule": "javascript:S3696",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/routes/reportes.routes.js",
+      "line": 34,
+      "message": "Expected an error object to be thrown."
+    },
+    {
+      "key": "AaDZ3QcmO2tvtBRZ4sxM",
+      "rule": "javascript:S3696",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/routes/reportes.routes.js",
+      "line": 37,
+      "message": "Expected an error object to be thrown."
+    },
+    {
+      "key": "AaDZ3QcmO2tvtBRZ4sxN",
+      "rule": "javascript:S6582",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/routes/reportes.routes.js",
+      "line": 81,
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    {
+      "key": "AaDZ3QcmO2tvtBRZ4sxO",
+      "rule": "javascript:S6582",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/routes/reportes.routes.js",
+      "line": 97,
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    {
+      "key": "AaDZ3QcmO2tvtBRZ4sxP",
+      "rule": "javascript:S6582",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/routes/reportes.routes.js",
+      "line": 126,
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    {
+      "key": "AaDZ3QklO2tvtBRZ4syF",
+      "rule": "azurepipelines:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:azure-pipelines.yml",
+      "line": 80,
+      "message": "Omitting \"--ignore-scripts\" allows lifecycle scripts to run during package installation."
+    },
+    {
+      "key": "AaDZ3QklO2tvtBRZ4syG",
+      "rule": "azurepipelines:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:azure-pipelines.yml",
+      "line": 131,
+      "message": "Omitting \"--ignore-scripts\" allows lifecycle scripts to run during package installation."
+    },
+    {
+      "key": "AaDZ3QklO2tvtBRZ4syH",
+      "rule": "azurepipelines:S8543",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:azure-pipelines.yml",
+      "line": 135,
+      "message": "Define exact package version to avoid installing unverified releases."
+    },
+    {
+      "key": "AaDZ3QklO2tvtBRZ4syI",
+      "rule": "azurepipelines:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:azure-pipelines.yml",
+      "line": 135,
+      "message": "\"npx\" can install packages on-demand and run their lifecycle scripts."
+    },
+    {
+      "key": "AaDZ3QklO2tvtBRZ4syJ",
+      "rule": "azurepipelines:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:azure-pipelines.yml",
+      "line": 140,
+      "message": "Omitting \"--ignore-scripts\" allows lifecycle scripts to run during package installation."
+    },
+    {
+      "key": "AaDZ3QidO2tvtBRZ4sxf",
+      "rule": "plsql:S1192",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 159,
+      "message": "Define a constant instead of duplicating this literal 3 times."
+    },
+    {
+      "key": "AaDZ3QidO2tvtBRZ4sxe",
+      "rule": "plsql:S1192",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 177,
+      "message": "Define a constant instead of duplicating this literal 3 times."
+    },
+    {
+      "key": "AaDZ3Qi6O2tvtBRZ4sxh",
+      "rule": "secrets:S8215",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/02_seed.sql",
+      "line": 13,
+      "message": "Make sure this bcrypt password hash gets revoked, changed, and removed from the code."
+    },
+    {
+      "key": "AaDZ3Qi6O2tvtBRZ4sxi",
+      "rule": "secrets:S8215",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/02_seed.sql",
+      "line": 14,
+      "message": "Make sure this bcrypt password hash gets revoked, changed, and removed from the code."
+    },
+    {
+      "key": "AaDZ3Qi6O2tvtBRZ4sxj",
+      "rule": "secrets:S8215",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/02_seed.sql",
+      "line": 15,
+      "message": "Make sure this bcrypt password hash gets revoked, changed, and removed from the code."
+    },
+    {
+      "key": "AaDZ3Qi6O2tvtBRZ4sxk",
+      "rule": "secrets:S8215",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/02_seed.sql",
+      "line": 16,
+      "message": "Make sure this bcrypt password hash gets revoked, changed, and removed from the code."
+    },
+    {
+      "key": "AaDZ3QhnO2tvtBRZ4sxd",
+      "rule": "docker:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:docker/pagos/Dockerfile",
+      "line": 10,
+      "message": "Omitting \"--ignore-scripts\" allows lifecycle scripts to run during package installation."
+    },
+    {
+      "key": "AaDZ3QgXO2tvtBRZ4sxc",
+      "rule": "docker:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:docker/pedidos/Dockerfile",
+      "line": 10,
+      "message": "Omitting \"--ignore-scripts\" allows lifecycle scripts to run during package installation."
+    },
+    {
+      "key": "AaDZ3Qj2O2tvtBRZ4syD",
+      "rule": "shell:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:scripts/deploy-azure.sh",
+      "line": 218,
+      "message": "Omitting \"--ignore-scripts\" allows lifecycle scripts to run during package installation."
+    },
+    {
+      "key": "AaDZ3Qd9O2tvtBRZ4sxS",
+      "rule": "javascript:S7772",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/auth/routes/auth.routes.js",
+      "line": 6,
+      "message": "Prefer `node:crypto` over `crypto`."
+    },
+    {
+      "key": "AaDZ3Qd9O2tvtBRZ4sxT",
+      "rule": "javascript:S8786",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/auth/routes/auth.routes.js",
+      "line": 15,
+      "message": "Simplify this regular expression to reduce its runtime, as it has super-linear performance due to backtracking."
+    },
+    {
+      "key": "AaDZ3Qd9O2tvtBRZ4sxU",
+      "rule": "javascript:S2486",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/auth/routes/auth.routes.js",
+      "line": 51,
+      "message": "Handle this exception, don't catch it at all, or explain in a comment why it is ignored."
+    },
+    {
+      "key": "AaDZ3Qd9O2tvtBRZ4sxX",
+      "rule": "jssecurity:S5145",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/auth/routes/auth.routes.js",
+      "line": 68,
+      "message": "Log Injection via unsanitized user input"
+    },
+    {
+      "key": "AaDZ3Qd9O2tvtBRZ4sxY",
+      "rule": "jssecurity:S5145",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/auth/routes/auth.routes.js",
+      "line": 74,
+      "message": "Log Injection via unsanitized user input"
+    },
+    {
+      "key": "AaDZ3Qd9O2tvtBRZ4sxV",
+      "rule": "javascript:S2486",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/auth/routes/auth.routes.js",
+      "line": 104,
+      "message": "Handle this exception, don't catch it at all, or explain in a comment why it is ignored."
+    },
+    {
+      "key": "AaDZ3QUnO2tvtBRZ4swq",
+      "rule": "javascript:S2486",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/catalogo/routes/catalogo.routes.js",
+      "line": 63,
+      "message": "Handle this exception, don't catch it at all, or explain in a comment why it is ignored."
+    },
+    {
+      "key": "AaDZ3QUnO2tvtBRZ4swr",
+      "rule": "javascript:S2486",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/catalogo/routes/catalogo.routes.js",
+      "line": 118,
+      "message": "Handle this exception, don't catch it at all, or explain in a comment why it is ignored."
+    },
+    {
+      "key": "AaDZ3QUnO2tvtBRZ4sws",
+      "rule": "javascript:S2486",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/catalogo/routes/catalogo.routes.js",
+      "line": 136,
+      "message": "Handle this exception, don't catch it at all, or explain in a comment why it is ignored."
+    },
+    {
+      "key": "AaDZ3QZdO2tvtBRZ4sw9",
+      "rule": "javascript:S2486",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/api/client.js",
+      "line": 37,
+      "message": "Handle this exception, don't catch it at all, or explain in a comment why it is ignored."
+    },
+    {
+      "key": "AaDZ3QZdO2tvtBRZ4sw-",
+      "rule": "javascript:S6582",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/api/client.js",
+      "line": 75,
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    {
+      "key": "AaDZ3QZMO2tvtBRZ4sw8",
+      "rule": "javascript:S4624",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/api/inventario.js",
+      "line": 17,
+      "message": "Refactor this code to not use nested template literals."
+    },
+    {
+      "key": "AaDZ3QY8O2tvtBRZ4sw7",
+      "rule": "javascript:S4624",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/api/pedidos.js",
+      "line": 7,
+      "message": "Refactor this code to not use nested template literals."
+    },
+    {
+      "key": "AaDZ3QZtO2tvtBRZ4sw_",
+      "rule": "javascript:S4624",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/api/reportes.js",
+      "line": 10,
+      "message": "Refactor this code to not use nested template literals."
+    },
+    {
+      "key": "AaDZ3QZtO2tvtBRZ4sxA",
+      "rule": "javascript:S7763",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/api/reportes.js",
+      "line": 25,
+      "message": "Use `export…from` to re-export `BASE_URLS`."
+    },
+    {
+      "key": "AaDZ3QYvO2tvtBRZ4sw6",
+      "rule": "javascript:S6819",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/components/Alerta.jsx",
+      "line": 9,
+      "message": "Use <output> instead of the \"status\" role to ensure accessibility across all devices."
+    },
+    {
+      "key": "AaDZ3QX3O2tvtBRZ4sw4",
+      "rule": "javascript:S7721",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/pages/Login.jsx",
+      "line": 30,
+      "message": "Move function 'rutaPorRol' to the outer scope."
+    },
+    {
+      "key": "AaDZ3QYXO2tvtBRZ4sw5",
+      "rule": "javascript:S8786",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/pages/Registro.jsx",
+      "line": 6,
+      "message": "Simplify this regular expression to reduce its runtime, as it has super-linear performance due to backtracking."
+    },
+    {
+      "key": "AaDZ3QXPO2tvtBRZ4sw1",
+      "rule": "javascript:S3358",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/pages/cliente/Checkout.jsx",
+      "line": 66,
+      "message": "Extract this nested ternary operation into an independent statement."
+    },
+    {
+      "key": "AaDZ3QXhO2tvtBRZ4sw2",
+      "rule": "javascript:S3863",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/pages/cliente/Suscripciones.jsx",
+      "line": 2,
+      "message": "'/tmp/clone13986627463385713608/src/frontend/src/api/pagos.js' imported multiple times."
+    },
+    {
+      "key": "AaDZ3QXhO2tvtBRZ4sw3",
+      "rule": "javascript:S3863",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/pages/cliente/Suscripciones.jsx",
+      "line": 4,
+      "message": "'/tmp/clone13986627463385713608/src/frontend/src/api/pagos.js' imported multiple times."
+    },
+    {
+      "key": "AaDZ3QaAO2tvtBRZ4sxB",
+      "rule": "javascript:S7754",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/utils/cart.js",
+      "line": 13,
+      "message": "Prefer `.some(…)` over `.find(…)`."
+    },
+    {
+      "key": "AaDZ3QaQO2tvtBRZ4sxC",
+      "rule": "javascript:S6582",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/frontend/src/utils/checkout.js",
+      "line": 8,
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+    },
+    {
+      "key": "AaEiZ5RmE3G1IiUCHUMq",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pagos/routes/suscripciones.routes.js",
+      "line": 61,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaDZ3Qa-O2tvtBRZ4sxE",
+      "rule": "jssecurity:S5145",
+      "severity": "MINOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/lib/notificaciones.js",
+      "line": 13,
+      "message": "Log Injection via unsanitized user input"
+    },
+    {
+      "key": "AaDZ3Qa-O2tvtBRZ4sxD",
+      "rule": "javascript:S2486",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/lib/notificaciones.js",
+      "line": 27,
+      "message": "Handle this exception, don't catch it at all, or explain in a comment why it is ignored."
+    },
+    {
+      "key": "AaDZ3Qc3O2tvtBRZ4sxQ",
+      "rule": "javascript:S1940",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/routes/inventario.routes.js",
+      "line": 131,
+      "message": "Use the opposite operator (<=) instead."
+    },
+    {
+      "key": "AaEiZ5qME3G1IiUCHUMw",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/routes/inventario.routes.js",
+      "line": 139,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaEiZ5oKE3G1IiUCHUMu",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/routes/pedidos.routes.js",
+      "line": 67,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaEiZ5pKE3G1IiUCHUMv",
+      "rule": "javascript:S9382",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:src/pedidos/routes/reportes.routes.js",
+      "line": 176,
+      "message": "Unexpected `await` inside a loop."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD5z",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 20,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD50",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 21,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD51",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 22,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD52",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 23,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD53",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 33,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD54",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 34,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD55",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 35,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD7O",
+      "rule": "plsql:S1192",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 35,
+      "message": "Define a constant instead of duplicating this literal 3 times."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD56",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 44,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD57",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 51,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD58",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 52,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD59",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 61,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD5-",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 65,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD5_",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 71,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6A",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 76,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6B",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 98,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD7M",
+      "rule": "plsql:S1192",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 124,
+      "message": "Define a constant instead of duplicating this literal 5 times."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD7K",
+      "rule": "plsql:S1192",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 126,
+      "message": "Define a constant instead of duplicating this literal 3 times."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD7N",
+      "rule": "plsql:S1192",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 126,
+      "message": "Define a constant instead of duplicating this literal 3 times."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD7L",
+      "rule": "plsql:S1192",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 127,
+      "message": "Define a constant instead of duplicating this literal 3 times."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD7Q",
+      "rule": "plsql:S1192",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 127,
+      "message": "Define a constant instead of duplicating this literal 3 times."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6C",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 157,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6D",
+      "rule": "plsql:VarcharUsageCheck",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 158,
+      "message": "Use VARCHAR2 instead of VARCHAR."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6E",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 233,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6F",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 236,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6G",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 236,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6H",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 251,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6I",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 251,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6J",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 254,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6K",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 254,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6L",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 297,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6M",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 297,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6N",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 301,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6O",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 301,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6P",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 302,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6Q",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 302,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6R",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 319,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6S",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 319,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6T",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 320,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6U",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 320,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6V",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 323,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6W",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 323,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6X",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 324,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6Y",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 324,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD7P",
+      "rule": "plsql:S1192",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 388,
+      "message": "Define a constant instead of duplicating this literal 3 times."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6Z",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 437,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6a",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 439,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6b",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 439,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6c",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 439,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6d",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 439,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6e",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 439,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6f",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 441,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6g",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 442,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6h",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 443,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6i",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 443,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6j",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 446,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6k",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 446,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6l",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 446,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6m",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 446,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6n",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 446,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6o",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 448,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6p",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 449,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6q",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 450,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6r",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 450,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6s",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 466,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6t",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 468,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6u",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 468,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6v",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 471,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6w",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 471,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6x",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 471,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6y",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 471,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD60",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 473,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD61",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 473,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD6z",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 473,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD62",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 474,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD7G",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 552,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD65",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 553,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD66",
+      "rule": "plsql:QuotedIdentifiersCheck",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 553,
+      "message": "Avoid using quoted identifiers."
+    },
+    {
+      "key": "AaDJkK6s8z2QKkahFD7J",
+      "rule": "plsql:BooleanLiteralComparisonCheck",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:db/01_schema.sql",
+      "line": 566,
+      "message": "Remove this comparison against the boolean literal."
+    },
+    {
+      "key": "AaDJkK638z2QKkahFD7R",
+      "rule": "azurepipelines:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:azure-pipelines.yml",
+      "line": 61,
+      "message": "Omitting \"--ignore-scripts\" allows lifecycle scripts to run during package installation."
+    },
+    {
+      "key": "AaDJkK638z2QKkahFD7S",
+      "rule": "azurepipelines:S8543",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:azure-pipelines.yml",
+      "line": 65,
+      "message": "Define exact package version to avoid installing unverified releases."
+    },
+    {
+      "key": "AaDJkK638z2QKkahFD7T",
+      "rule": "azurepipelines:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:azure-pipelines.yml",
+      "line": 65,
+      "message": "\"npx\" can install packages on-demand and run their lifecycle scripts."
+    },
+    {
+      "key": "AaDJkK6g8z2QKkahFD5w",
+      "rule": "docker:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:docker/auth/Dockerfile",
+      "line": 10,
+      "message": "Omitting \"--ignore-scripts\" allows lifecycle scripts to run during package installation."
+    },
+    {
+      "key": "AaDJkK6g8z2QKkahFD5x",
+      "rule": "docker:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:docker/auth/Dockerfile",
+      "line": 12,
+      "message": "\"npx\" can install packages on-demand and run their lifecycle scripts."
+    },
+    {
+      "key": "AaDJkK6g8z2QKkahFD5y",
+      "rule": "docker:S8543",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:docker/auth/Dockerfile",
+      "line": 12,
+      "message": "Define exact package version to avoid installing unverified releases."
+    },
+    {
+      "key": "AaDJkK6X8z2QKkahFD5t",
+      "rule": "docker:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:docker/catalogo/Dockerfile",
+      "line": 10,
+      "message": "Omitting \"--ignore-scripts\" allows lifecycle scripts to run during package installation."
+    },
+    {
+      "key": "AaDJkK6X8z2QKkahFD5u",
+      "rule": "docker:S6505",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:docker/catalogo/Dockerfile",
+      "line": 12,
+      "message": "\"npx\" can install packages on-demand and run their lifecycle scripts."
+    },
+    {
+      "key": "AaDJkK6X8z2QKkahFD5v",
+      "rule": "docker:S8543",
+      "severity": "MAJOR",
+      "type": "VULNERABILITY",
+      "component": "ccastellanosf-umg_panaderia-el-frutal:docker/catalogo/Dockerfile",
+      "line": 12,
+      "message": "Define exact package version to avoid installing unverified releases."
+    }
+  ]
+}

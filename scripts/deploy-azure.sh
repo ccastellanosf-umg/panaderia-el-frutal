@@ -90,12 +90,16 @@ if [[ -z "$ADMIN_URL" ]]; then
   $ROTATE_APP_PASSWORD && { echo "--rotate-app-password needs ADMIN_DATABASE_URL"; exit 1; }
 else
   if $RESET_DB; then
+    # Without the production passwords the seed users would keep the
+    # README passwords: refuse before dropping anything.
+    require_seed_passwords || exit 1
     step "Recreating schema on Azure PostgreSQL (ALL DATA WILL BE LOST)"
     read -r -p "Type SI to continue: " answer
     [[ "$answer" == "SI" ]] || { echo "Aborted."; exit 1; }
     psql "$ADMIN_URL" -v ON_ERROR_STOP=1 -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
     psql "$ADMIN_URL" -q -v ON_ERROR_STOP=1 -f db/01_schema.sql
     psql "$ADMIN_URL" -q -v ON_ERROR_STOP=1 -f db/02_seed.sql
+    apply_seed_passwords "$ADMIN_URL"
     psql "$ADMIN_URL" -t -c "SELECT count(*) AS productos FROM productos;"
     ROTATE_APP_PASSWORD=true # the DROP SCHEMA removed the role's grants
   else
@@ -215,7 +219,7 @@ done
 step "Building and deploying the frontend"
 (
   cd src/frontend
-  npm ci
+  npm ci --ignore-scripts
   VITE_AUTH_URL="https://$(app_name auth).azurewebsites.net" \
   VITE_CATALOGO_URL="https://$(app_name catalogo).azurewebsites.net" \
   VITE_PEDIDOS_URL="https://$(app_name pedidos).azurewebsites.net" \

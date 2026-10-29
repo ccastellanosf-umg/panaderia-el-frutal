@@ -6,11 +6,12 @@
 // registra estado 'fallida' pero NUNCA bloquea la operación que la
 // originó (DEF-07).
 const { query } = require("./db");
+const { sanitizarLog } = require("./log");
 
 async function enviarWhatsapp(mensaje, destino) {
   const url = process.env.WHATSAPP_API_URL;
   if (!url) {
-    console.log(`[WhatsApp simulado] Para ${destino}: ${mensaje}`);
+    console.log(`[WhatsApp simulado] Para ${sanitizarLog(destino)}: ${sanitizarLog(mensaje)}`);
     return "enviada";
   }
 
