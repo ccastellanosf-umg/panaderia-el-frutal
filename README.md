@@ -117,7 +117,38 @@ El pipeline las ejecuta en la etapa `PruebasAPI` (entre `CalidadSonar` y `Deploy
 
 ## Control de versiones
 
-El equipo trabaja con **GitHub Flow**: la rama `main` se mantiene siempre desplegable; cada historia de usuario se desarrolla en una rama `feature/<historia>-<descripcion-breve>` y se integra mediante Pull Request, el cual dispara automáticamente las etapas de Build y Test del pipeline (`azure-pipelines.yml`).
+**Ramas y ambientes.** Usamos tres ramas fijas y cada una representa un ambiente:
+
+| Rama | Ambiente | Qué contiene |
+|---|---|---|
+| `dev` | Integración | Donde se junta el trabajo de todos. Recibe los PR de las ramas de trabajo. |
+| `qa` | Validación | Solo lo que ya se integró en `dev`. Aquí se valida antes de pasar a producción. |
+| `main` | Producción (Azure) | Lo que se fusiona aquí se despliega a Azure. |
+
+**Flujo de promoción.** Cada cambio se hace en una rama de trabajo que sale de `dev` (`feature/*`, `fix/*`, `ci/*`, `test/*`, `docs/*`) y vuelve a `dev` por Pull Request. Cuando `dev` está estable se abre un PR de `dev` a `qa`, y cuando `qa` está validada, un PR de `qa` a `main`. No se hace push directo a ninguna de las tres ramas.
+
+**Qué exige cada paso.** Las reglas de GitHub (rulesets "PROD (main)" y "QA y DEV") piden lo mismo para fusionar en `dev`, `qa` y `main`:
+
+| Requisito | Por qué |
+|---|---|
+| Pull Request obligatorio | Todo cambio queda revisado y con historial. |
+| 1 aprobación del otro integrante | Nadie aprueba su propio trabajo. |
+| Si llegan commits nuevos, la aprobación anterior se descarta | Lo que se aprobó tiene que ser lo que se fusiona. |
+| Conversaciones resueltas | Cada comentario de la revisión se contesta antes de fusionar. |
+| Pipeline en verde (check `ccastellanosf-umg.panaderia-el-frutal` de Azure Pipelines) | No entra código que no compila, rompe pruebas o no pasa el quality gate. |
+| Sin borrado de la rama ni force-push | El historial no se reescribe. |
+
+**Qué corre el pipeline en cada caso.** El plan gratuito de SonarCloud solo analiza `main` y los Pull Requests, así que la etapa CalidadSonar no corre en los pushes a `dev` y `qa`:
+
+| Evento | Etapas que corren |
+|---|---|
+| PR hacia `dev`, `qa` o `main` | Build, Test (pruebas unitarias con cobertura), CalidadSonar (análisis estático y quality gate de SonarCloud) y PruebasAPI (Postman con Newman). |
+| Push a `dev` o `qa` (al fusionar un PR) | Build, Test y PruebasAPI. CalidadSonar se omite: ese código ya pasó el quality gate en su PR. |
+| Push a `main` (al fusionar el PR de `qa`) | Todas las etapas, incluido Deploy a Azure. |
+
+Si una etapa falla, incluido el quality gate, las siguientes no corren y no se despliega.
+
+**Método de merge.** Siempre *Create a merge commit*, nunca Squash ni Rebase. Así cada commit conserva su autor y en el historial se ve qué PR trajo cada cambio. Los dos rulesets tienen "Allowed merge methods" limitado a Merge, así que GitHub no ofrece Squash ni Rebase.
 
 ## Azure DevOps
 
