@@ -47,6 +47,10 @@ variables:
   staticWebAppName: 'swa-elfrutal-frontend-g3'
   frontendDirectory: 'src/frontend'
 
+# Dependencias: npm ci --ignore-scripts evita que un paquete ejecute
+# scripts de instalación durante el build, y las herramientas se ejecutan
+# desde node_modules/.bin (nunca con npx, que podría descargarlas).
+# Prisma Client se genera de forma explícita.
 stages:
 
   # ------------------------------------------------------------
@@ -79,11 +83,11 @@ stages:
               version: '20.x'
             displayName: 'Instalar Node.js 20'
 
-          - script: npm ci
+          - script: npm ci --ignore-scripts
             workingDirectory: 'src/$(serviceName)'
             displayName: 'Instalar dependencias de $(serviceName)'
 
-          - script: npx prisma generate
+          - script: ./node_modules/.bin/prisma generate
             workingDirectory: 'src/$(serviceName)'
             condition: eq(variables['usaPrisma'], 'true')
             displayName: 'Generar cliente Prisma de $(serviceName)'
@@ -98,7 +102,7 @@ stages:
               version: '20.x'
             displayName: 'Instalar Node.js 20'
 
-          - script: npm ci
+          - script: npm ci --ignore-scripts
             workingDirectory: '$(frontendDirectory)'
             displayName: 'Instalar dependencias del frontend'
 
@@ -145,20 +149,20 @@ stages:
             inputs:
               version: '20.x'
 
-          - script: npm ci
+          - script: npm ci --ignore-scripts
             workingDirectory: 'src/$(serviceName)'
             displayName: 'Instalar dependencias de $(serviceName)'
 
-          - script: npx prisma generate
+          - script: ./node_modules/.bin/prisma generate
             workingDirectory: 'src/$(serviceName)'
             condition: eq(variables['usaPrisma'], 'true')
             displayName: 'Generar cliente Prisma de $(serviceName)'
 
-          - script: npm --prefix ../.. ci
+          - script: npm --prefix ../.. ci --ignore-scripts
             workingDirectory: 'src/$(serviceName)'
             displayName: 'Instalar dependencias compartidas de pruebas (supertest)'
 
-          - script: npx jest $(serviceName).test.js --roots ../../tests --ci --forceExit --coverage
+          - script: ./node_modules/.bin/jest $(serviceName).test.js --roots ../../tests --ci --forceExit --coverage
             workingDirectory: 'src/$(serviceName)'
             displayName: 'Ejecutar pruebas de $(serviceName) con cobertura'
             env:
@@ -185,7 +189,7 @@ stages:
               version: '20.x'
             displayName: 'Instalar Node.js 20'
 
-          - script: npm ci
+          - script: npm ci --ignore-scripts
             workingDirectory: '$(frontendDirectory)'
             displayName: 'Instalar dependencias del frontend'
 
@@ -255,7 +259,7 @@ stages:
               artifact: 'coverage-frontend'
               path: '$(Pipeline.Workspace)/coverage/frontend'
 
-          - task: SonarCloudPrepare@3
+          - task: SonarCloudPrepare@3.4.3
             displayName: 'Preparar análisis de SonarCloud'
             inputs:
               SonarCloud: 'SonarCloud-ElFrutal'
@@ -268,10 +272,10 @@ stages:
 
           # Con sonar.qualitygate.wait=true, este paso falla el job si el
           # quality gate no se cumple.
-          - task: SonarCloudAnalyze@3
+          - task: SonarCloudAnalyze@3.4.3
             displayName: 'Ejecutar análisis de SonarCloud'
 
-          - task: SonarCloudPublish@3
+          - task: SonarCloudPublish@3.4.3
             displayName: 'Publicar resultado del quality gate'
             inputs:
               pollingTimeoutSec: '300'
