@@ -7,6 +7,7 @@
 // `pg` con DATABASE_URL; si no está definida, esos casos se marcan
 // como "skipped" con el motivo.
 const { Pool } = require("pg");
+const { credencial } = require("./credenciales");
 
 const AUTH_URL = process.env.AUTH_URL || "http://localhost:3001";
 const CATALOGO_URL = process.env.CATALOGO_URL || "http://localhost:3002";
@@ -74,6 +75,11 @@ async function login(correo, contrasena) {
   return body;
 }
 
+function loginComo(rol) {
+  const { correo, contrasena } = credencial(rol);
+  return login(correo, contrasena);
+}
+
 async function registrarCliente(nombre, contrasena = "Pass1234") {
   const correo = correoUnico("cliente");
   const { status } = await api("POST", `${AUTH_URL}/auth/registro`, {
@@ -83,15 +89,15 @@ async function registrarCliente(nombre, contrasena = "Pass1234") {
   return login(correo, contrasena);
 }
 
-// Credenciales semilla (db/02_seed.sql)
+// Sesiones de los usuarios semilla (ver credenciales.js)
 let admin;
 let ventas;
 let produccion;
 
 beforeAll(async () => {
-  admin = await login("admin@elfrutal.com", "Admin1234");
-  ventas = await login("ventas@elfrutal.com", "Ventas1234");
-  produccion = await login("produccion@elfrutal.com", "Produccion1234");
+  admin = await loginComo("admin");
+  ventas = await loginComo("ventas");
+  produccion = await loginComo("produccion");
 }, 30000);
 
 afterAll(async () => {
@@ -568,7 +574,7 @@ describe("Casos adicionales — defectos DEF-01..DEF-10", () => {
     // compartida `admin`) para no invalidar el token que usan otros
     // casos de esta misma suite; y endpoints admin-only para poder
     // aislar el efecto del logout del control de acceso por rol.
-    const sesion = await login("admin@elfrutal.com", "Admin1234");
+    const sesion = await loginComo("admin");
     const antes = await api("GET", `${AUTH_URL}/auth/me`, { token: sesion.token });
     expect(antes.status).toBe(200);
 

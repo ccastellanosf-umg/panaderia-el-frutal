@@ -7,9 +7,10 @@ FROM node:20-alpine AS builder
 RUN apk add --no-cache openssl
 WORKDIR /app
 COPY src/catalogo/package*.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 COPY src/catalogo/prisma ./prisma
-RUN npx prisma generate
+# --ignore-scripts omite el postinstall de Prisma: se genera el cliente explícitamente.
+RUN ./node_modules/.bin/prisma generate
 COPY src/catalogo .
 
 FROM node:20-alpine AS production

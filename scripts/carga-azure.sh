@@ -19,6 +19,16 @@ set -euo pipefail
 # shellcheck source=scripts/azure-config.sh
 source "$(dirname "${BASH_SOURCE[0]}")/azure-config.sh"
 
+# Default to the production seed client from the local secrets file.
+SECRETS_FILE="${SECRETS_FILE:-$HOME/.elfrutal/azure-g3.secrets}"
+# shellcheck disable=SC1090
+[[ -f "$SECRETS_FILE" ]] && source "$SECRETS_FILE"
+if [[ -z "${K6_CORREO:-}" && -n "${SEED_CLIENTE_PASSWORD:-}" ]]; then
+  K6_CORREO="cliente@elfrutal.com"
+  K6_CONTRASENA="$SEED_CLIENTE_PASSWORD"
+fi
+export K6_CORREO K6_CONTRASENA
+
 [[ -n "${K6_CORREO:-}" && -n "${K6_CONTRASENA:-}" ]] || {
   echo "K6_CORREO and K6_CONTRASENA (a client account) are required."
   exit 1

@@ -2,18 +2,22 @@
 -- db/02_seed.sql
 -- Datos semilla para desarrollo/QA — Panadería El Frutal
 -- Se monta después de db/01_schema.sql en docker-entrypoint-initdb.d.
--- Contraseñas hasheadas con bcrypt (costo 10) fuera de este script
--- (nunca en texto plano) mediante scripts/hash-passwords.js.
+-- Las contraseñas de los usuarios semilla se hashean con bcrypt (costo
+-- 10) al cargar el script, con crypt() de pgcrypto: el repositorio no
+-- guarda hashes. Solo valen para el entorno local; en Azure se cambian
+-- (ver README).
 -- ============================================================
 
 -- ------------------------------------------------------------
 -- 1. Usuarios y roles
 -- ------------------------------------------------------------
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 INSERT INTO usuarios ("idUsuario", "nombre", "correo", "contrasenaHash", "rol") VALUES
-(1, 'Administradora El Frutal', 'admin@elfrutal.com', '$2b$10$4gCvej8gWGX/ihdn9NnCe.I.EFKLyUBFr3N8ClL9MaW7u5ylYCecW', 'administrador'),
-(2, 'Operador de Ventas',       'ventas@elfrutal.com', '$2b$10$69v9jx/5Dy.u1xxodC/6qOOH0bo6kRuhpOGBo4Bp77vuBJequeFw2', 'operador'),
-(3, 'Operador de Producción',   'produccion@elfrutal.com', '$2b$10$RGK0C5uBskkUAzQs2V6qJuOcs69jVFEO32cilpWZXm/RJjwzUZwbK', 'operador'),
-(4, 'Cliente Demo',             'cliente@elfrutal.com', '$2b$10$O8nv3UV377wlClUf7RQHauaLOScT7s0BL013Mh78zaB8.tdQ08iga', 'cliente');
+(1, 'Administradora El Frutal', 'admin@elfrutal.com', crypt('Admin1234', gen_salt('bf', 10)), 'administrador'),
+(2, 'Operador de Ventas',       'ventas@elfrutal.com', crypt('Ventas1234', gen_salt('bf', 10)), 'operador'),
+(3, 'Operador de Producción',   'produccion@elfrutal.com', crypt('Produccion1234', gen_salt('bf', 10)), 'operador'),
+(4, 'Cliente Demo',             'cliente@elfrutal.com', crypt('Cliente1234', gen_salt('bf', 10)), 'cliente');
 SELECT setval(pg_get_serial_sequence('usuarios', 'idUsuario'), 4);
 
 INSERT INTO personal ("idUsuario", "area") VALUES
