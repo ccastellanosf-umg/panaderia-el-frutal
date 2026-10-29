@@ -1159,7 +1159,7 @@ describe("lib/log: sanitizarLog", () => {
     expect(sanitizarLog("a\r\nb\tc\u0000d")).toBe("a  b c d");
   });
   it("trunca valores largos y acepta no-strings", () => {
-    expect(sanitizarLog("x".repeat(500)).length).toBeLessThanOrEqual(201);
+    expect(sanitizarLog("x".repeat(500))).toHaveLength(200);
     expect(sanitizarLog(undefined)).toBe("undefined");
   });
 });
