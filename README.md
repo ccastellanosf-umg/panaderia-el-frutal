@@ -163,7 +163,7 @@ El proyecto se analiza en SonarCloud: https://sonarcloud.io/project/overview?id=
 
 Etapas en orden: Build → Test (pruebas unitarias con cobertura) → CalidadSonar → PruebasAPI (Postman + Newman sobre un stack desechable de docker compose) → Deploy (solo `main`). Se ejecuta automáticamente en cada Pull Request y en cada push a `dev`, `qa` y `main`; también se puede lanzar a mano desde Azure DevOps → Pipelines → *Run pipeline*. En los pushes a `dev` y `qa` se omite CalidadSonar (el plan gratuito de SonarCloud solo analiza `main` y los Pull Requests): ese código ya pasó el quality gate en su PR.
 
-El agente es self-hosted (pool `Default`) y necesita Java 17 (escáner de SonarCloud, con `JAVA_HOME` en el `.env` del agente), Docker Desktop en ejecución (etapa PruebasAPI) y acceso a internet: Node.js 20 no hace falta instalarlo, porque la tarea `UseNode@1` lo descarga a la caché de herramientas del agente.
+El agente es self-hosted (pool `Default`) y necesita Java 17 (escáner de SonarCloud, con `JAVA_HOME` en el `.env` del agente), Docker Desktop en ejecución (etapa PruebasAPI) y acceso a internet: Node.js 20 no hace falta instalarlo, porque la tarea `UseNode@1` lo descarga a la caché de herramientas del agente. Las tareas de SonarCloud están fijadas en la versión 3.4.3 (`SonarCloudPrepare@3.4.3`, etc.), así que una versión nueva de la extensión no cambia el análisis sin revisión: actualizarlas es manual, y una versión nueva del escáner puede exigir otra versión de Java.
 
 ### Pruebas de carga (k6)
 
