@@ -101,6 +101,20 @@ panaderia-el-frutal/
    `admin@elfrutal.com` / `Admin1234`, `ventas@elfrutal.com` / `Ventas1234`,
    `produccion@elfrutal.com` / `Produccion1234`, `cliente@elfrutal.com` / `Cliente1234`.
 
+## Pruebas de API (Postman + Newman)
+
+La colección `tests/api/elfrutal.postman_collection.json` (21 requests, 63 aserciones) valida código de estado, esquema JSON y contenido de cada respuesta. Cubre: salud de los 4 servicios, un flujo de negocio encadenado con variables de colección (registro de un cliente nuevo, login, catálogo, pedido, historial, cambios de estado por ventas, logout y token revocado) y casos negativos (401, 403 y contraseña incorrecta). Cada ejecución registra un cliente con correo único, por lo que es repetible.
+
+Ejecución local contra `docker compose up` (puertos 3001..3004 publicados):
+
+```bash
+npm run test:api   # usa npx newman@6.1.3 y tests/api/local.postman_environment.json
+```
+
+Sin dependencias locales, con un stack desechable (igual que el pipeline): `bash scripts/ci/api-tests.sh` (genera `test-results/api/newman-junit.xml`).
+
+El pipeline las ejecuta en la etapa `PruebasAPI` (entre `CalidadSonar` y `Deploy`) y publica el reporte JUnit.
+
 ## Control de versiones
 
 El equipo trabaja con **GitHub Flow**: la rama `main` se mantiene siempre desplegable; cada historia de usuario se desarrolla en una rama `feature/<historia>-<descripcion-breve>` y se integra mediante Pull Request, el cual dispara automáticamente las etapas de Build y Test del pipeline (`azure-pipelines.yml`).

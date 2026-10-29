@@ -9,14 +9,21 @@
 #   1. Build           instalación y compilación
 #   2. Test            pruebas unitarias con cobertura (Jest y Vitest)
 #   3. CalidadSonar    análisis estático en SonarCloud y quality gate
-#   4. Deploy          despliegue a Azure (solo main)
-#   (las pruebas de API se agregarán más adelante, antes de Deploy)
+#   4. PruebasAPI      pruebas de API (Postman + Newman) sobre un stack
+#                      desechable de docker compose
+#   5. Deploy          despliegue a Azure (solo main)
 #
 # Estrategia de ramas: dev (integración) -> qa (validación) -> main
-# (producción). Los Pull Requests y los pushes a dev y qa ejecutan
-# Build, Test y CalidadSonar; Deploy a Azure solo se ejecuta al fusionar
-# a main. Si el quality gate de SonarCloud falla, el pipeline falla y no
-# se despliega.
+# (producción).
+#   - Pull Requests hacia dev, qa y main: Build, Test, CalidadSonar y
+#     PruebasAPI.
+#   - Pushes a dev y qa (al fusionar un PR): Build, Test y PruebasAPI.
+#     CalidadSonar se omite porque el plan gratuito de SonarCloud solo
+#     analiza main y los Pull Requests; ese código ya pasó el quality gate
+#     en su PR.
+#   - Push a main: todas las etapas, incluido Deploy a Azure.
+# Si una etapa falla (incluido el quality gate), las siguientes no corren
+# y no se despliega.
 
 trigger:
   batch: true
@@ -201,6 +208,13 @@ stages:
   - stage: CalidadSonar
     displayName: 'Análisis estático (SonarCloud) y quality gate'
     dependsOn: Test
+    # El plan gratuito de SonarCloud solo analiza main y los Pull Requests:
+    # en los pushes a dev y qa la etapa se omite (ese código ya pasó el
+    # quality gate en su PR).
+    condition: >-
+      and(succeeded(),
+          or(eq(variables['Build.Reason'], 'PullRequest'),
+             eq(variables['Build.SourceBranch'], 'refs/heads/main')))
     jobs:
       - job: SonarCloud
         displayName: 'Análisis de SonarCloud y verificación del quality gate'
@@ -263,16 +277,43 @@ stages:
               pollingTimeoutSec: '300'
 
   # ------------------------------------------------------------
-  # (Las pruebas de API se agregarán más adelante entre CalidadSonar
-  # y Deploy.)
+  # ETAPA 4: PRUEBAS DE API — colección de Postman ejecutada con Newman
   # ------------------------------------------------------------
+  - stage: PruebasAPI
+    displayName: 'Pruebas de API (Postman + Newman)'
+    dependsOn:
+      - Test
+      - CalidadSonar
+    # Corre si las pruebas unitarias pasaron y SonarCloud pasó o se omitió
+    # (pushes a dev y qa); nunca si el quality gate falló.
+    condition: >-
+      and(eq(dependencies.Test.result, 'Succeeded'),
+          in(dependencies.CalidadSonar.result, 'Succeeded', 'Skipped'))
+    jobs:
+      - job: Newman
+        displayName: 'Colección de Postman con Newman sobre docker compose'
+        pool:
+          name: 'Default'
+        steps:
+          # El script levanta un stack desechable, corre Newman dentro de
+          # la red de compose y siempre lo destruye al terminar.
+          - script: bash scripts/ci/api-tests.sh
+            displayName: 'Ejecutar las pruebas de API'
+
+          - task: PublishTestResults@2
+            displayName: 'Publicar resultados de las pruebas de API'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: 'test-results/api/newman-junit.xml'
+              testRunTitle: 'Pruebas de API (Newman)'
 
   # ------------------------------------------------------------
-  # ETAPA 4: DEPLOY (solo main; solo servicios del Sprint 1)
+  # ETAPA 5: DEPLOY (solo main; solo servicios del Sprint 1)
   # ------------------------------------------------------------
   - stage: Deploy
     displayName: 'Despliegue a Azure (los cuatro microservicios)'
-    dependsOn: CalidadSonar
+    dependsOn: PruebasAPI
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
       - job: DeployMicroservicios

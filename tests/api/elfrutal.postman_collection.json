@@ -1,0 +1,1017 @@
+{
+  "info": {
+    "name": "El Frutal - Pruebas de API",
+    "description": "Pruebas de API (no unitarias) de los microservicios auth, catalogo, pedidos y pagos. Se ejecutan con Newman; ver README.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 Salud",
+      "item": [
+        {
+          "name": "GET /health - auth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"service\",\"status\"],\"properties\":{\"service\":{\"type\":\"string\"},\"status\":{\"type\":\"string\"}}};",
+                  "pm.test(\"Esquema JSON: salud auth\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: salud auth\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.service).to.eql(\"auth\");",
+                  "  pm.expect(json.status).to.eql(\"ok\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{authUrl}}/health",
+              "host": [
+                "{{authUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /health - catalogo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"service\",\"status\"],\"properties\":{\"service\":{\"type\":\"string\"},\"status\":{\"type\":\"string\"}}};",
+                  "pm.test(\"Esquema JSON: salud catalogo\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: salud catalogo\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.service).to.eql(\"catalogo\");",
+                  "  pm.expect(json.status).to.eql(\"ok\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{catalogoUrl}}/health",
+              "host": [
+                "{{catalogoUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /health - pedidos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"service\",\"status\"],\"properties\":{\"service\":{\"type\":\"string\"},\"status\":{\"type\":\"string\"}}};",
+                  "pm.test(\"Esquema JSON: salud pedidos\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: salud pedidos\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.service).to.eql(\"pedidos\");",
+                  "  pm.expect(json.status).to.eql(\"ok\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{pedidosUrl}}/health",
+              "host": [
+                "{{pedidosUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /health - pagos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"service\",\"status\"],\"properties\":{\"service\":{\"type\":\"string\"},\"status\":{\"type\":\"string\"}}};",
+                  "pm.test(\"Esquema JSON: salud pagos\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: salud pagos\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.service).to.eql(\"pagos\");",
+                  "  pm.expect(json.status).to.eql(\"ok\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{pagosUrl}}/health",
+              "host": [
+                "{{pagosUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Flujo de negocio: compra de un cliente",
+      "item": [
+        {
+          "name": "Registrar cliente nuevo",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Correo y contraseña únicos por ejecución: la colección es repetible.",
+                  "const sufijo = Date.now() + '-' + Math.floor(Math.random() * 100000);",
+                  "pm.collectionVariables.set('clienteCorreo', `api-${sufijo}@correo.com`);",
+                  "pm.collectionVariables.set('clienteContrasena', `Clave-${sufijo}`);",
+                  "pm.collectionVariables.set('clienteNombre', `Cliente API ${sufijo}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 201\", function () { pm.response.to.have.status(201); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"mensaje\",\"idUsuario\"],\"properties\":{\"mensaje\":{\"type\":\"string\"},\"idUsuario\":{\"type\":\"integer\"}}};",
+                  "pm.test(\"Esquema JSON: registro\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: registro\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.mensaje).to.eql(\"Registro exitoso\");",
+                  "  pm.expect(json.idUsuario).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\": \"{{clienteNombre}}\", \"correo\": \"{{clienteCorreo}}\", \"telefono\": \"5555-0000\", \"contrasena\": \"{{clienteContrasena}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authUrl}}/auth/registro",
+              "host": [
+                "{{authUrl}}"
+              ],
+              "path": [
+                "auth",
+                "registro"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login del cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"token\",\"expiresIn\",\"usuario\"],\"properties\":{\"token\":{\"type\":\"string\",\"minLength\":20},\"expiresIn\":{\"type\":\"string\"},\"usuario\":{\"type\":\"object\",\"required\":[\"idUsuario\",\"nombre\",\"correo\",\"rol\"],\"properties\":{\"idUsuario\":{\"type\":\"integer\"},\"nombre\":{\"type\":\"string\"},\"correo\":{\"type\":\"string\"},\"rol\":{\"type\":\"string\"}}}}};",
+                  "pm.test(\"Esquema JSON: login cliente\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: login cliente\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.expiresIn).to.eql(\"8h\");",
+                  "  pm.expect(json.usuario.rol).to.eql(\"cliente\");",
+                  "  pm.expect(json.usuario.correo).to.eql(pm.collectionVariables.get('clienteCorreo'));",
+                  "  pm.expect(json.usuario.idCliente).to.be.a('number');",
+                  "});",
+                  "pm.collectionVariables.set('clienteToken', pm.response.json().token);",
+                  "pm.collectionVariables.set('idCliente', pm.response.json().usuario.idCliente);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"correo\": \"{{clienteCorreo}}\", \"contrasena\": \"{{clienteContrasena}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authUrl}}/auth/login",
+              "host": [
+                "{{authUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Consultar sesión del cliente (GET /auth/me)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"usuario\"],\"properties\":{\"usuario\":{\"type\":\"object\",\"required\":[\"idUsuario\",\"rol\",\"nombre\"],\"properties\":{\"idUsuario\":{\"type\":\"integer\"},\"rol\":{\"type\":\"string\"},\"nombre\":{\"type\":\"string\"},\"idCliente\":{\"type\":\"integer\"},\"jti\":{\"type\":\"string\"}}}}};",
+                  "pm.test(\"Esquema JSON: me\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: me\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.usuario.rol).to.eql(\"cliente\");",
+                  "  pm.expect(json.usuario.nombre).to.eql(pm.collectionVariables.get('clienteNombre'));",
+                  "  pm.expect(json.usuario.idCliente).to.eql(pm.collectionVariables.get('idCliente'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clienteToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{authUrl}}/auth/me",
+              "host": [
+                "{{authUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar productos disponibles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"array\",\"minItems\":1,\"items\":{\"type\":\"object\",\"required\":[\"idProducto\",\"nombre\",\"precio\",\"disponibilidad\"],\"properties\":{\"idProducto\":{\"type\":\"integer\"},\"nombre\":{\"type\":\"string\"},\"precio\":{\"type\":\"number\"},\"disponibilidad\":{\"type\":\"boolean\"}}}};",
+                  "pm.test(\"Esquema JSON: catálogo de productos\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: catálogo de productos\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.every(function (p) { return p.disponibilidad === true; })).to.be.true;",
+                  "  pm.expect(json.map(function (p) { return p.nombre; })).to.include('Pan francés');",
+                  "  pm.expect(json.every(function (p) { return p.precio >= 0; })).to.be.true;",
+                  "});",
+                  "const producto = pm.response.json()[0];",
+                  "pm.collectionVariables.set('productoId', producto.idProducto);",
+                  "pm.collectionVariables.set('productoPrecio', producto.precio);",
+                  "pm.collectionVariables.set('productoNombre', producto.nombre);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{catalogoUrl}}/productos",
+              "host": [
+                "{{catalogoUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear pedido (cliente)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('cantidad', 2);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 201\", function () { pm.response.to.have.status(201); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"idPedido\",\"estado\",\"total\",\"items\"],\"properties\":{\"idPedido\":{\"type\":\"integer\"},\"estado\":{\"type\":\"string\",\"enum\":[\"recibido\",\"en_preparacion\",\"listo\",\"entregado\",\"cancelado\"]},\"total\":{\"type\":\"number\"},\"items\":{\"type\":\"array\",\"minItems\":1,\"items\":{\"type\":\"object\",\"required\":[\"idProducto\",\"nombre\",\"cantidad\",\"subtotal\"],\"properties\":{\"idProducto\":{\"type\":\"integer\"},\"nombre\":{\"type\":\"string\"},\"cantidad\":{\"type\":\"integer\"},\"subtotal\":{\"type\":\"number\"}}}}}};",
+                  "pm.test(\"Esquema JSON: pedido creado\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: pedido creado\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.estado).to.eql(\"recibido\");",
+                  "  const esperado = Number(pm.collectionVariables.get('productoPrecio')) * Number(pm.collectionVariables.get('cantidad'));",
+                  "  pm.expect(json.total).to.be.closeTo(esperado, 0.001);",
+                  "  pm.expect(json.items).to.have.lengthOf(1);",
+                  "  pm.expect(json.items[0].idProducto).to.eql(Number(pm.collectionVariables.get('productoId')));",
+                  "  pm.expect(json.items[0].cantidad).to.eql(Number(pm.collectionVariables.get('cantidad')));",
+                  "});",
+                  "pm.collectionVariables.set('idPedido', pm.response.json().idPedido);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clienteToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"items\": [{\"idProducto\": {{productoId}}, \"cantidad\": {{cantidad}}}], \"direccionEntrega\": \"Zona 1, Ciudad de Guatemala\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{pedidosUrl}}/pedidos",
+              "host": [
+                "{{pedidosUrl}}"
+              ],
+              "path": [
+                "pedidos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Historial del cliente (GET /pedidos/mios)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"array\",\"minItems\":1,\"items\":{\"type\":\"object\",\"required\":[\"idPedido\",\"estado\",\"total\",\"items\"],\"properties\":{\"idPedido\":{\"type\":\"integer\"},\"estado\":{\"type\":\"string\",\"enum\":[\"recibido\",\"en_preparacion\",\"listo\",\"entregado\",\"cancelado\"]},\"total\":{\"type\":\"number\"},\"items\":{\"type\":\"array\",\"minItems\":1,\"items\":{\"type\":\"object\",\"required\":[\"idProducto\",\"nombre\",\"cantidad\",\"subtotal\"],\"properties\":{\"idProducto\":{\"type\":\"integer\"},\"nombre\":{\"type\":\"string\"},\"cantidad\":{\"type\":\"integer\"},\"subtotal\":{\"type\":\"number\"}}}}}}};",
+                  "pm.test(\"Esquema JSON: historial de pedidos\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: historial de pedidos\", function () {",
+                  "  const json = pm.response.json();",
+                  "  const id = Number(pm.collectionVariables.get('idPedido'));",
+                  "  const creado = json.find(function (p) { return p.idPedido === id; });",
+                  "  pm.expect(creado, 'el pedido nuevo aparece en el historial').to.exist;",
+                  "  pm.expect(creado.estado).to.eql(\"recibido\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clienteToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{pedidosUrl}}/pedidos/mios",
+              "host": [
+                "{{pedidosUrl}}"
+              ],
+              "path": [
+                "pedidos",
+                "mios"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detalle del pedido del cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"idPedido\",\"estado\",\"total\",\"items\"],\"properties\":{\"idPedido\":{\"type\":\"integer\"},\"estado\":{\"type\":\"string\",\"enum\":[\"recibido\",\"en_preparacion\",\"listo\",\"entregado\",\"cancelado\"]},\"total\":{\"type\":\"number\"},\"items\":{\"type\":\"array\",\"minItems\":1,\"items\":{\"type\":\"object\",\"required\":[\"idProducto\",\"nombre\",\"cantidad\",\"subtotal\"],\"properties\":{\"idProducto\":{\"type\":\"integer\"},\"nombre\":{\"type\":\"string\"},\"cantidad\":{\"type\":\"integer\"},\"subtotal\":{\"type\":\"number\"}}}}}};",
+                  "pm.test(\"Esquema JSON: detalle del pedido\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: detalle del pedido\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.idPedido).to.eql(Number(pm.collectionVariables.get('idPedido')));",
+                  "  pm.expect(json.idClienteResuelto).to.eql(Number(pm.collectionVariables.get('idCliente')));",
+                  "  pm.expect(json.items[0].nombre).to.eql(pm.collectionVariables.get('productoNombre'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clienteToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{pedidosUrl}}/pedidos/{{idPedido}}",
+              "host": [
+                "{{pedidosUrl}}"
+              ],
+              "path": [
+                "pedidos",
+                "{{idPedido}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login del personal de ventas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"token\",\"expiresIn\",\"usuario\"],\"properties\":{\"token\":{\"type\":\"string\",\"minLength\":20},\"expiresIn\":{\"type\":\"string\"},\"usuario\":{\"type\":\"object\",\"required\":[\"idUsuario\",\"nombre\",\"correo\",\"rol\"],\"properties\":{\"idUsuario\":{\"type\":\"integer\"},\"nombre\":{\"type\":\"string\"},\"correo\":{\"type\":\"string\"},\"rol\":{\"type\":\"string\"}}}}};",
+                  "pm.test(\"Esquema JSON: login ventas\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: login ventas\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.usuario.rol).to.eql(\"operador\");",
+                  "  pm.expect(json.usuario.area).to.eql('ventas');",
+                  "  pm.expect(json.usuario.correo).to.eql(pm.environment.get('ventasCorreo') || pm.collectionVariables.get('ventasCorreo'));",
+                  "});",
+                  "pm.collectionVariables.set('ventasToken', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"correo\": \"{{ventasCorreo}}\", \"contrasena\": \"{{ventasContrasena}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authUrl}}/auth/login",
+              "host": [
+                "{{authUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pasar el pedido a en_preparacion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"idPedido\",\"estado\",\"total\",\"items\"],\"properties\":{\"idPedido\":{\"type\":\"integer\"},\"estado\":{\"type\":\"string\",\"enum\":[\"recibido\",\"en_preparacion\",\"listo\",\"entregado\",\"cancelado\"]},\"total\":{\"type\":\"number\"},\"items\":{\"type\":\"array\",\"minItems\":1,\"items\":{\"type\":\"object\",\"required\":[\"idProducto\",\"nombre\",\"cantidad\",\"subtotal\"],\"properties\":{\"idProducto\":{\"type\":\"integer\"},\"nombre\":{\"type\":\"string\"},\"cantidad\":{\"type\":\"integer\"},\"subtotal\":{\"type\":\"number\"}}}}}};",
+                  "pm.test(\"Esquema JSON: cambio de estado a en_preparacion\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: cambio de estado a en_preparacion\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.estado).to.eql(\"en_preparacion\");",
+                  "  pm.expect(json.idPedido).to.eql(Number(pm.collectionVariables.get('idPedido')));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ventasToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"estado\": \"en_preparacion\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{pedidosUrl}}/pedidos/{{idPedido}}/estado",
+              "host": [
+                "{{pedidosUrl}}"
+              ],
+              "path": [
+                "pedidos",
+                "{{idPedido}}",
+                "estado"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pasar el pedido a listo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"idPedido\",\"estado\",\"total\",\"items\"],\"properties\":{\"idPedido\":{\"type\":\"integer\"},\"estado\":{\"type\":\"string\",\"enum\":[\"recibido\",\"en_preparacion\",\"listo\",\"entregado\",\"cancelado\"]},\"total\":{\"type\":\"number\"},\"items\":{\"type\":\"array\",\"minItems\":1,\"items\":{\"type\":\"object\",\"required\":[\"idProducto\",\"nombre\",\"cantidad\",\"subtotal\"],\"properties\":{\"idProducto\":{\"type\":\"integer\"},\"nombre\":{\"type\":\"string\"},\"cantidad\":{\"type\":\"integer\"},\"subtotal\":{\"type\":\"number\"}}}}}};",
+                  "pm.test(\"Esquema JSON: cambio de estado a listo\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: cambio de estado a listo\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.estado).to.eql(\"listo\");",
+                  "  pm.expect(json.idPedido).to.eql(Number(pm.collectionVariables.get('idPedido')));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ventasToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"estado\": \"listo\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{pedidosUrl}}/pedidos/{{idPedido}}/estado",
+              "host": [
+                "{{pedidosUrl}}"
+              ],
+              "path": [
+                "pedidos",
+                "{{idPedido}}",
+                "estado"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pasar el pedido a entregado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"idPedido\",\"estado\",\"total\",\"items\"],\"properties\":{\"idPedido\":{\"type\":\"integer\"},\"estado\":{\"type\":\"string\",\"enum\":[\"recibido\",\"en_preparacion\",\"listo\",\"entregado\",\"cancelado\"]},\"total\":{\"type\":\"number\"},\"items\":{\"type\":\"array\",\"minItems\":1,\"items\":{\"type\":\"object\",\"required\":[\"idProducto\",\"nombre\",\"cantidad\",\"subtotal\"],\"properties\":{\"idProducto\":{\"type\":\"integer\"},\"nombre\":{\"type\":\"string\"},\"cantidad\":{\"type\":\"integer\"},\"subtotal\":{\"type\":\"number\"}}}}}};",
+                  "pm.test(\"Esquema JSON: cambio de estado a entregado\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: cambio de estado a entregado\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.estado).to.eql(\"entregado\");",
+                  "  pm.expect(json.idPedido).to.eql(Number(pm.collectionVariables.get('idPedido')));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ventasToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"estado\": \"entregado\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{pedidosUrl}}/pedidos/{{idPedido}}/estado",
+              "host": [
+                "{{pedidosUrl}}"
+              ],
+              "path": [
+                "pedidos",
+                "{{idPedido}}",
+                "estado"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cerrar sesión del cliente (logout)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"mensaje\"],\"properties\":{\"mensaje\":{\"type\":\"string\"}}};",
+                  "pm.test(\"Esquema JSON: logout\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: logout\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.mensaje).to.eql(\"Sesión cerrada correctamente.\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clienteToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{authUrl}}/auth/logout",
+              "host": [
+                "{{authUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Token revocado rechazado (GET /auth/me)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 401\", function () { pm.response.to.have.status(401); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"error\"],\"properties\":{\"error\":{\"type\":\"string\"}}};",
+                  "pm.test(\"Esquema JSON: token revocado\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: token revocado\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.error).to.include(\"Sesión cerrada\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clienteToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{authUrl}}/auth/me",
+              "host": [
+                "{{authUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Casos negativos",
+      "item": [
+        {
+          "name": "Crear pedido sin token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 401\", function () { pm.response.to.have.status(401); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"error\"],\"properties\":{\"error\":{\"type\":\"string\"}}};",
+                  "pm.test(\"Esquema JSON: sin token\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: sin token\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.error).to.eql(\"Token no proporcionado.\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"items\": [{\"idProducto\": 1, \"cantidad\": 1}]}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{pedidosUrl}}/pedidos",
+              "host": [
+                "{{pedidosUrl}}"
+              ],
+              "path": [
+                "pedidos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login del cliente (nueva sesión para casos negativos)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"token\",\"expiresIn\",\"usuario\"],\"properties\":{\"token\":{\"type\":\"string\",\"minLength\":20},\"expiresIn\":{\"type\":\"string\"},\"usuario\":{\"type\":\"object\",\"required\":[\"idUsuario\",\"nombre\",\"correo\",\"rol\"],\"properties\":{\"idUsuario\":{\"type\":\"integer\"},\"nombre\":{\"type\":\"string\"},\"correo\":{\"type\":\"string\"},\"rol\":{\"type\":\"string\"}}}}};",
+                  "pm.test(\"Esquema JSON: login cliente\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: login cliente\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.usuario.rol).to.eql(\"cliente\");",
+                  "});",
+                  "pm.collectionVariables.set('clienteToken2', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"correo\": \"{{clienteCorreo}}\", \"contrasena\": \"{{clienteContrasena}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authUrl}}/auth/login",
+              "host": [
+                "{{authUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cliente intenta crear un producto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 403\", function () { pm.response.to.have.status(403); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"error\"],\"properties\":{\"error\":{\"type\":\"string\"}}};",
+                  "pm.test(\"Esquema JSON: rol no autorizado\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: rol no autorizado\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.error).to.eql(\"No autorizado para este recurso.\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clienteToken2}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\": \"Producto no autorizado\", \"precio\": 5}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{catalogoUrl}}/productos",
+              "host": [
+                "{{catalogoUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login con contraseña incorrecta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 401\", function () { pm.response.to.have.status(401); });",
+                  "const esquema = {\"type\":\"object\",\"required\":[\"error\"],\"properties\":{\"error\":{\"type\":\"string\"}}};",
+                  "pm.test(\"Esquema JSON: credenciales inválidas\", function () { pm.response.to.have.jsonSchema(esquema); });",
+                  "pm.test(\"Contenido: credenciales inválidas\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.error).to.eql(\"Credenciales inválidas.\");",
+                  "  pm.expect(json).to.not.have.property('token');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"correo\": \"{{clienteCorreo}}\", \"contrasena\": \"contrasena-incorrecta\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authUrl}}/auth/login",
+              "host": [
+                "{{authUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "authUrl",
+      "value": "http://localhost:3001"
+    },
+    {
+      "key": "catalogoUrl",
+      "value": "http://localhost:3002"
+    },
+    {
+      "key": "pedidosUrl",
+      "value": "http://localhost:3003"
+    },
+    {
+      "key": "pagosUrl",
+      "value": "http://localhost:3004"
+    },
+    {
+      "key": "ventasCorreo",
+      "value": ""
+    },
+    {
+      "key": "ventasContrasena",
+      "value": ""
+    }
+  ]
+}
