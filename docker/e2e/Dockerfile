@@ -9,12 +9,16 @@
 FROM node:20-alpine
 
 WORKDIR /app
+# Runs as the unprivileged "node" user; it owns /app so the reporters can
+# write test-results/ (scripts/ci/e2e.sh copies it out of the container).
+RUN chown node:node /app
+USER node
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY --chown=node:node package.json package-lock.json ./
+RUN npm ci --ignore-scripts
 
-COPY tests ./tests
+COPY --chown=node:node tests ./tests
 
 ENV NODE_ENV=test
 
-CMD ["npx", "jest", "--config", "tests/e2e/jest.e2e.config.js"]
+CMD ["./node_modules/.bin/jest", "--config", "tests/e2e/jest.e2e.config.js"]

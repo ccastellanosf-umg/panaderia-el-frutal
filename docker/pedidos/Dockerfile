@@ -7,7 +7,7 @@ RUN apk add --no-cache openssl
 WORKDIR /app
 ENV NODE_ENV=production
 COPY src/pedidos/package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 COPY src/pedidos .
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup

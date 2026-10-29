@@ -219,7 +219,7 @@ done
 step "Building and deploying the frontend"
 (
   cd src/frontend
-  npm ci
+  npm ci --ignore-scripts
   VITE_AUTH_URL="https://$(app_name auth).azurewebsites.net" \
   VITE_CATALOGO_URL="https://$(app_name catalogo).azurewebsites.net" \
   VITE_PEDIDOS_URL="https://$(app_name pedidos).azurewebsites.net" \

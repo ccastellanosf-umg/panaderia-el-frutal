@@ -18,6 +18,10 @@ const NOMBRE_PLAN = "Fase 1 — Panadería El Frutal";
 const TOKEN = process.env.AZURE_DEVOPS_TOKEN;
 if (!TOKEN) throw new Error("Missing AZURE_DEVOPS_TOKEN");
 
+// Strips control characters (CR/LF...) so values from API responses or the
+// environment cannot forge log lines (log injection).
+const limpio = (v) => String(v).replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, " ").slice(0, 200);
+
 const raiz = path.resolve(__dirname, "../..");
 const base = `${ORG}/${encodeURIComponent(PROYECTO)}/_apis`;
 
@@ -98,7 +102,7 @@ async function main() {
     description: "Casos CP-01 a CP-40 del entregable E3; ejecución automatizada con la suite E2E (Jest).",
   });
   const suite = plan.rootSuite.id;
-  console.log(`plan ${plan.id}, suite ${suite}`);
+  console.log(`plan ${limpio(plan.id)}, suite ${limpio(suite)}`);
 
   const idPorCp = {};
   for (const c of casosDesdeCsv()) {
@@ -166,9 +170,9 @@ async function main() {
     });
     await api("PATCH", `test/runs/${run.id}?api-version=7.1`, { state: "Completed" });
     const fallidos = Object.values(resultado).filter((o) => o === "Failed").length;
-    console.log(`${nombre}: run ${run.id}, ${Object.keys(resultado).length - fallidos} passed, ${fallidos} failed`);
+    console.log(`${limpio(nombre)}: run ${limpio(run.id)}, ${Object.keys(resultado).length - fallidos} passed, ${fallidos} failed`);
   }
-  console.log(`${ORG}/${encodeURIComponent(PROYECTO)}/_testPlans/define?planId=${plan.id}`);
+  console.log(limpio(`${ORG}/${encodeURIComponent(PROYECTO)}/_testPlans/define?planId=${plan.id}`));
 }
 
 // Incremental mode: adds the test cases missing from an existing plan
@@ -215,7 +219,7 @@ async function agregarEjecucion(planId, nombre, junit) {
   });
   await api("PATCH", `test/runs/${run.id}?api-version=7.1`, { state: "Completed" });
   const fallidos = Object.values(resultado).filter((o) => o === "Failed").length;
-  console.log(`${nombre}: run ${run.id}, ${Object.keys(resultado).length - fallidos} passed, ${fallidos} failed`);
+  console.log(`${limpio(nombre)}: run ${limpio(run.id)}, ${Object.keys(resultado).length - fallidos} passed, ${fallidos} failed`);
 }
 
 const tarea = process.env.PLAN_ID

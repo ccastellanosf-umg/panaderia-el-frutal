@@ -193,6 +193,39 @@ describe("Microservicio de autenticación", () => {
       });
       expect(res.statusCode).toBe(401);
     });
+
+    it("no inyecta saltos de línea del correo en el registro de intentos fallidos", async () => {
+      const aviso = jest.spyOn(console, "warn").mockImplementation(() => {});
+      mockUsuario.findUnique.mockResolvedValue(null);
+      const res = await request(app).post("/auth/login").send({
+        correo: "falso@correo.com\r\n[INFO] login exitoso para admin",
+        contrasena: "Pass1234",
+      });
+      expect(res.statusCode).toBe(401);
+      expect(aviso).toHaveBeenCalledTimes(1);
+      const linea = aviso.mock.calls[0].join(" ");
+      expect(linea).not.toMatch(/[\r\n]/);
+      expect(linea).toContain("falso@correo.com");
+      aviso.mockRestore();
+    });
+
+    it("no inyecta saltos de línea cuando la contraseña es incorrecta", async () => {
+      const aviso = jest.spyOn(console, "warn").mockImplementation(() => {});
+      const hash = await bcrypt.hash("Pass1234", 10);
+      mockUsuario.findUnique.mockResolvedValue({
+        idUsuario: 4,
+        correo: "cliente@elfrutal.com",
+        rol: "cliente",
+        contrasenaHash: hash,
+      });
+      await request(app).post("/auth/login").send({
+        correo: "cliente@elfrutal.com\nFORJADO",
+        contrasena: "Incorrecta1",
+      });
+      expect(aviso).toHaveBeenCalledTimes(1);
+      expect(aviso.mock.calls[0].join(" ")).not.toMatch(/[\r\n]/);
+      aviso.mockRestore();
+    });
   });
 
   describe("GET /auth/me", () => {
