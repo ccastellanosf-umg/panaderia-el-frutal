@@ -162,7 +162,7 @@ Si una etapa falla, incluido el quality gate, las siguientes no corren y no se d
 Los nombres, la suscripción y la región se definen en `scripts/azure-config.sh` (sobrescribibles con variables de entorno).
 
 1. `az login` y, una sola vez por suscripción: `./scripts/bootstrap-azure.sh`. Registra los proveedores, crea el grupo de recursos, PostgreSQL, ACR, el plan de App Service, la Static Web App y el monitoreo (Log Analytics, Application Insights y un grupo de acciones por correo; `ALERT_EMAILS` los destinatarios), y carga el esquema y los datos semilla. Los secretos se guardan fuera del repositorio, en `~/.elfrutal/azure-g3.secrets`.
-2. `source ~/.elfrutal/azure-g3.secrets && ./scripts/deploy-azure.sh`: construye y publica las imágenes, crea o actualiza las App Services y despliega el frontend.
+2. `source ~/.elfrutal/azure-g3.secrets && ./scripts/deploy-azure.sh`: construye y publica las imágenes, crea o actualiza las App Services y despliega el frontend. Requiere psql 15 o superior: `--reset-db` y el bootstrap aplican las contraseñas de producción de los usuarios semilla con `\getenv`.
 3. En Azure DevOps, crear la conexión de servicio `Conexion-ElFrutal-G3` y actualizar la variable secreta `AZURE_STATIC_WEB_APPS_API_TOKEN`.
 4. `npm run test:e2e:azure` ejecuta las pruebas E2E contra el despliegue.
 
@@ -192,13 +192,15 @@ El proyecto se analiza en SonarCloud: https://sonarcloud.io/project/overview?id=
 
 ### Pipeline (Azure Pipelines)
 
-Etapas en orden: Build → Test (pruebas unitarias con cobertura) → CalidadSonar → PruebasAPI (Postman + Newman sobre un stack desechable de docker compose) → Deploy (solo `main`). Se ejecuta automáticamente en cada Pull Request y en cada push a `dev`, `qa` y `main`; también se puede lanzar a mano desde Azure DevOps → Pipelines → *Run pipeline*.
+Etapas en orden: Build → Test (pruebas unitarias con cobertura) → CalidadSonar → PruebasAPI (Postman + Newman sobre un stack desechable de docker compose) → Deploy (solo `main`). Se ejecuta automáticamente en cada Pull Request y en cada push a `dev`, `qa` y `main`; también se puede lanzar a mano desde Azure DevOps → Pipelines → *Run pipeline*. En los pushes a `dev` y `qa` se omite CalidadSonar (el plan gratuito de SonarCloud solo analiza `main` y los Pull Requests): ese código ya pasó el quality gate en su PR.
 
-El agente es self-hosted (pool `Default`) y necesita Node.js 20, Java 17 (escáner de SonarCloud, con `JAVA_HOME` en el `.env` del agente) y Docker Desktop en ejecución (etapa PruebasAPI).
+El agente es self-hosted (pool `Default`) y necesita Java 17 (escáner de SonarCloud, con `JAVA_HOME` en el `.env` del agente), Docker Desktop en ejecución (etapa PruebasAPI) y acceso a internet: Node.js 20 no hace falta instalarlo, porque la tarea `UseNode@1` lo descarga a la caché de herramientas del agente. Las tareas de SonarCloud están fijadas en la versión 3.4.3 (`SonarCloudPrepare@3.4.3`, etc.), así que una versión nueva de la extensión no cambia el análisis sin revisión: actualizarlas es manual, y una versión nueva del escáner puede exigir otra versión de Java.
 
 ### Pruebas de carga (k6)
 
 `npm run test:carga:azure` ejecuta `tests/carga/carga.k6.js` contra Azure: rampa a 50 usuarios virtuales en 1 minuto, 5 minutos sostenidos, sobre `GET /productos` y `GET /pedidos/mios`. Requiere k6 y `az login`; toma las credenciales del cliente semilla de `~/.elfrutal/azure-g3.secrets`. Cada corrida deja `resumen.md`, `resumen.json` y `reporte.html` en su propia carpeta de `test-results/carga/`.
+
+Para medir el rendimiento en condiciones normales (RNF-01) se usa el mismo script con un solo usuario durante 1 minuto: `k6 run --vus 1 --duration 1m tests/carga/carga.k6.js`, con las mismas variables de entorno que exporta `scripts/carga-azure.sh` (`AUTH_URL`, `CATALOGO_URL`, `PEDIDOS_URL`, `K6_CORREO` y `K6_CONTRASENA`). En k6, `--vus` y `--duration` reemplazan los `stages` del script.
 
 ## Licencia y uso académico
 
