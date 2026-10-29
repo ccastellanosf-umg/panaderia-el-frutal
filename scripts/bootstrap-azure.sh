@@ -24,6 +24,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/azure-config.sh"
 
 step() { printf '\n==> %s\n' "$*"; }
 die() { echo "ERROR: $*" >&2; exit 1; }
+# Only runs when the server is created: it REWRITES the file, so any value
+# appended later (SEED_*_PASSWORD, SONAR_TOKEN) must be re-added after it.
 write_secrets() {
   ( umask 077
     {
@@ -119,7 +121,8 @@ fi
 az postgres flexible-server parameter set -g "$RG" -s "$PG_SERVER" \
   --name require_secure_transport --value on -o none
 # db/02_seed.sql hashes the seed passwords with pgcrypto's crypt();
-# Flexible Server only allows extensions listed in azure.extensions.
+# Flexible Server only allows extensions listed in azure.extensions. The
+# value REPLACES the whole list: add new ones comma-separated (PGCRYPTO,X).
 az postgres flexible-server parameter set -g "$RG" -s "$PG_SERVER" \
   --name azure.extensions --value PGCRYPTO -o none
 
@@ -223,6 +226,9 @@ if [[ "$TABLES" == "0" ]]; then
   echo "Empty database: loading schema and seed"
   psql "$ADMIN_DATABASE_URL" -q -v ON_ERROR_STOP=1 -f db/01_schema.sql
   psql "$ADMIN_DATABASE_URL" -q -v ON_ERROR_STOP=1 -f db/02_seed.sql
+  # The seed sets the README passwords; production gets its own ones.
+  ensure_seed_passwords
+  apply_seed_passwords "$ADMIN_DATABASE_URL"
 else
   echo "Database already has $TABLES tables: schema/seed skipped."
 fi
