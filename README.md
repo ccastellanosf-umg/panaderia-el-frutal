@@ -124,3 +124,4 @@ Los nombres, la suscripción y la región se definen en `scripts/azure-config.sh
 
 
 Proyecto desarrollado con fines académicos para el Seminario de Trabajo de Graduación de la Universidad Mariano Gálvez de Guatemala. No distribuido con fines comerciales.
+Proyecto desarrollado con fines académicos para el Seminario de Trabajo de Graduación de la Universidad Mariano Gálvez de Guatemala. No distribuido con fines comerciales.
